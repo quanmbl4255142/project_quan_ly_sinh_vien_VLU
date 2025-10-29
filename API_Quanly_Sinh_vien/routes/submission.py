@@ -215,6 +215,7 @@ def delete_submission(submission_id):
 @submission_bp.route('/submissions/<int:submission_id>/review', methods=['POST'])
 @jwt_required()
 def review_submission(submission_id):
+    # Permission check inside function for teacher/admin
     try:
         submission = ProjectSubmission.query.get(submission_id)
         
@@ -305,6 +306,7 @@ def get_evaluation(evaluation_id):
 @submission_bp.route('/evaluations', methods=['POST'])
 @jwt_required()
 def create_evaluation():
+    # Permission check inside function for teacher/admin
     try:
         data = request.get_json()
         
@@ -450,6 +452,7 @@ def update_evaluation(evaluation_id):
 @submission_bp.route('/evaluations/<int:evaluation_id>', methods=['DELETE'])
 @jwt_required()
 def delete_evaluation(evaluation_id):
+    # Permission check inside function for admin only
     try:
         evaluation = ProjectEvaluation.query.get(evaluation_id)
         

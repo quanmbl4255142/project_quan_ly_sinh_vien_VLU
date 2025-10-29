@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { getSubmissions, createSubmission, updateSubmission, deleteSubmission, reviewSubmission, getProjects, createEvaluation } from '../api'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Submissions(){
+  const { user, isAdmin, isTeacherOrAdmin } = useAuth()
   const [submissions, setSubmissions] = useState([])
   const [projects, setProjects] = useState([])
   const [error, setError] = useState('')
@@ -215,10 +217,16 @@ export default function Submissions(){
                     </div>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
-                    <button onClick={()=>openReviewForm(sub)} className="rounded bg-amber-600 text-white px-2 py-1 text-xs hover:bg-amber-700">Review</button>
-                    <button onClick={()=>openEvalForm(sub)} className="rounded bg-purple-600 text-white px-2 py-1 text-xs hover:bg-purple-700">Đánh giá</button>
+                    {isTeacherOrAdmin() && (
+                      <>
+                        <button onClick={()=>openReviewForm(sub)} className="rounded bg-amber-600 text-white px-2 py-1 text-xs hover:bg-amber-700">Review</button>
+                        <button onClick={()=>openEvalForm(sub)} className="rounded bg-purple-600 text-white px-2 py-1 text-xs hover:bg-purple-700">Đánh giá</button>
+                      </>
+                    )}
                     <button onClick={()=>openForm(sub)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Sửa</button>
-                    <button onClick={()=>handleDelete(sub.id)} className="rounded bg-red-600 text-white px-2 py-1 text-xs hover:bg-red-700">Xóa</button>
+                    {isAdmin() && (
+                      <button onClick={()=>handleDelete(sub.id)} className="rounded bg-red-600 text-white px-2 py-1 text-xs hover:bg-red-700">Xóa</button>
+                    )}
                   </div>
                 </div>
               </div>

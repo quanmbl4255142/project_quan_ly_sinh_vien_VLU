@@ -1,8 +1,9 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Dashboard(){
-  const user = JSON.parse(localStorage.getItem('user') || 'null')
+  const { user, isAdmin, isTeacherOrAdmin } = useAuth()
   
   return (
     <div className="space-y-6">
@@ -144,6 +145,11 @@ export default function Dashboard(){
               <Link to="/profile" className="block w-full p-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg text-center font-medium hover:shadow-lg transition-all">
                 Xem Profile 🔗
               </Link>
+              {isAdmin() && (
+                <Link to="/admin/users" className="block w-full p-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg text-center font-medium hover:shadow-lg transition-all">
+                  👑 Admin Panel
+                </Link>
+              )}
             </div>
           </div>
         </div>

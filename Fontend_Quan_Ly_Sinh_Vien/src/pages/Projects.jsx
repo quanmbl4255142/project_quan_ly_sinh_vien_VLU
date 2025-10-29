@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { getProjects, createProject, updateProject, deleteProject, getTeachers } from '../api'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Projects(){
+  const { user, isAdmin, isTeacherOrAdmin } = useAuth()
   const [projects, setProjects] = useState([])
   const [teachers, setTeachers] = useState([])
   const [error, setError] = useState('')
@@ -135,9 +137,11 @@ export default function Projects(){
           <span className="text-4xl">📁</span>
           <h4 className="text-2xl font-bold text-gray-800">Danh sách dự án</h4>
         </div>
-        <button onClick={()=>openForm()} className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 text-sm font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center gap-2">
-          <span className="text-lg">➕</span> Thêm dự án
-        </button>
+        {isTeacherOrAdmin() && (
+          <button onClick={()=>openForm()} className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 text-sm font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center gap-2">
+            <span className="text-lg">➕</span> Thêm dự án
+          </button>
+        )}
       </div>
 
       {error && <div className="mb-3 rounded-md bg-red-50 text-red-700 px-3 py-2 text-sm">{error}</div>}
@@ -181,14 +185,18 @@ export default function Projects(){
                     <span>Kỳ: <strong>{p.semester || '—'}</strong></span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
-                  <button onClick={()=>openForm(p)} className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center justify-center gap-1">
-                    <span>✏️</span> Sửa
-                  </button>
-                  <button onClick={()=>handleDelete(p.id)} className="flex-1 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center justify-center gap-1">
-                    <span>🗑️</span> Xóa
-                  </button>
-                </div>
+                {isTeacherOrAdmin() && (
+                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
+                    <button onClick={()=>openForm(p)} className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center justify-center gap-1">
+                      <span>✏️</span> Sửa
+                    </button>
+                    {isAdmin() && (
+                      <button onClick={()=>handleDelete(p.id)} className="flex-1 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center justify-center gap-1">
+                        <span>🗑️</span> Xóa
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}

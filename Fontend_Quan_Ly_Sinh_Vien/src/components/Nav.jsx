@@ -28,6 +28,9 @@ export default function NavBar(){
                 <Link to="/projects" className="hover:text-white font-medium hover:scale-105 transition-all">📁 Projects</Link>
                 <Link to="/teams" className="hover:text-white font-medium hover:scale-105 transition-all">👥 Teams</Link>
                 <Link to="/submissions" className="hover:text-white font-medium hover:scale-105 transition-all">📝 Submissions</Link>
+                {user?.role === 'admin' && (
+                  <Link to="/admin/users" className="hover:text-white font-medium hover:scale-105 transition-all bg-red-500/20 px-3 py-1 rounded-lg">👑 Admin</Link>
+                )}
               </>
             )}
           </nav>

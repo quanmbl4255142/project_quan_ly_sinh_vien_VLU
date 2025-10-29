@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Team, TeamMember, Student, Project
+from models import db, Team, TeamMember, Student, Project, User
 from sqlalchemy import and_
+from utils.decorators import admin_required, teacher_or_admin_required
 
 team_bp = Blueprint('team', __name__)
 
@@ -194,6 +195,7 @@ def update_team(team_id):
 
 @team_bp.route('/<int:team_id>', methods=['DELETE'])
 @jwt_required()
+@teacher_or_admin_required
 def delete_team(team_id):
     try:
         team = Team.query.get(team_id)

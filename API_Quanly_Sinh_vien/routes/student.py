@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Student, User
 from sqlalchemy import or_
+from utils.decorators import admin_required, teacher_or_admin_required
 import re
 
 student_bp = Blueprint('student', __name__)
@@ -63,6 +64,7 @@ def get_student(student_id):
 
 @student_bp.route('/', methods=['POST'])
 @jwt_required()
+@admin_required
 def create_student():
     try:
         data = request.get_json()
@@ -113,6 +115,7 @@ def create_student():
 
 @student_bp.route('/<int:student_id>', methods=['PUT'])
 @jwt_required()
+@admin_required
 def update_student(student_id):
     try:
         student = Student.query.get(student_id)
@@ -155,6 +158,7 @@ def update_student(student_id):
 
 @student_bp.route('/<int:student_id>', methods=['DELETE'])
 @jwt_required()
+@admin_required
 def delete_student(student_id):
     try:
         student = Student.query.get(student_id)

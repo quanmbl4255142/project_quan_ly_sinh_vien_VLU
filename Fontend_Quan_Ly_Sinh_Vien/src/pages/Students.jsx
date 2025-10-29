@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { getStudents, createStudent, updateStudent, deleteStudent } from '../api'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Students(){
+  const { user, isAdmin } = useAuth()
   const [students, setStudents] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -112,9 +114,11 @@ export default function Students(){
           <span className="text-4xl">👨‍🎓</span>
           <h4 className="text-2xl font-bold text-gray-800">Danh sách sinh viên</h4>
         </div>
-        <button onClick={()=>openForm()} className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 text-sm font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center gap-2">
-          <span className="text-lg">➕</span> Thêm sinh viên
-        </button>
+        {isAdmin() && (
+          <button onClick={()=>openForm()} className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 text-sm font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center gap-2">
+            <span className="text-lg">➕</span> Thêm sinh viên
+          </button>
+        )}
       </div>
 
       {error && <div className="mb-3 rounded-md bg-red-50 text-red-700 px-3 py-2 text-sm">{error}</div>}
@@ -154,14 +158,16 @@ export default function Students(){
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={()=>openForm(s)} className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center gap-1">
-                    <span>✏️</span> Sửa
-                  </button>
-                  <button onClick={()=>handleDelete(s.id)} className="rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center gap-1">
-                    <span>🗑️</span> Xóa
-                  </button>
-                </div>
+                {isAdmin() && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={()=>openForm(s)} className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center gap-1">
+                      <span>✏️</span> Sửa
+                    </button>
+                    <button onClick={()=>handleDelete(s.id)} className="rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center gap-1">
+                      <span>🗑️</span> Xóa
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

@@ -207,3 +207,28 @@ export async function updateEvaluation(id, data){
 export async function deleteEvaluation(id){
   return request(`/submissions/evaluations/${id}`, { method: 'DELETE' })
 }
+
+// ===== Admin =====
+export async function getAllUsers(){
+  return request('/admin/users')
+}
+
+export async function getUser(id){
+  return request(`/admin/users/${id}`)
+}
+
+export async function toggleUserActive(id){
+  return request(`/admin/users/${id}/toggle-active`, { method: 'PUT' })
+}
+
+export async function changeUserRole(id, role){
+  return request(`/admin/users/${id}/change-role`, { method: 'PUT', body: JSON.stringify({ role }) })
+}
+
+export async function deleteUser(id){
+  return request(`/admin/users/${id}`, { method: 'DELETE' })
+}
+
+export async function getAdminStatistics(){
+  return request('/admin/statistics')
+}

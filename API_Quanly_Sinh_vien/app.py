@@ -21,6 +21,7 @@ def create_app():
     from routes.project import project_bp
     from routes.team import team_bp
     from routes.submission import submission_bp
+    from routes.admin import admin_bp
     
     # khung tổng 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -29,6 +30,7 @@ def create_app():
     app.register_blueprint(project_bp, url_prefix='/api/projects')
     app.register_blueprint(team_bp, url_prefix='/api/teams')
     app.register_blueprint(submission_bp, url_prefix='/api/submissions')
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
     
     @app.route('/')
     def index():

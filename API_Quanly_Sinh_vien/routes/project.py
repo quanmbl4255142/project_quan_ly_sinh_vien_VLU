@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Project, ProjectDocument, Teacher
 from sqlalchemy import or_
+from utils.decorators import admin_required, teacher_or_admin_required
 from datetime import datetime
 
 project_bp = Blueprint('project', __name__)
@@ -84,6 +85,7 @@ def get_project(project_id):
 
 @project_bp.route('/', methods=['POST'])
 @jwt_required()
+@teacher_or_admin_required
 def create_project():
     try:
         data = request.get_json()
@@ -136,6 +138,7 @@ def create_project():
 
 @project_bp.route('/<int:project_id>', methods=['PUT'])
 @jwt_required()
+@teacher_or_admin_required
 def update_project(project_id):
     try:
         project = Project.query.get(project_id)
@@ -186,6 +189,7 @@ def update_project(project_id):
 
 @project_bp.route('/<int:project_id>', methods=['DELETE'])
 @jwt_required()
+@admin_required
 def delete_project(project_id):
     try:
         project = Project.query.get(project_id)
