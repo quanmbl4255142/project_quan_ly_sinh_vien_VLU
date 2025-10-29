@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: 
+      context: ./Fontend_Quan_Ly_Sinh_Vien
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    build: 
+      context: ./API_Quanly_Sinh_vien
+      dockerfile: Dockerfile
+    expose:
+      - "5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - DATABASE_URL=mysql+pymysql://root:Quan5599nguz@db/student_project_management
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - JWT_SECRET_KEY=jwt-secret-string
+    depends_on:
+      - db
+    volumes:
+      - ./API_Quanly_Sinh_vien/static:/app/static
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    expose:
+      - "3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=Quan5599nguz
+      - MYSQL_DATABASE=student_project_management
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
