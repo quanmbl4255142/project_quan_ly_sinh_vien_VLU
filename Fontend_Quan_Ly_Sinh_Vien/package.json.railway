@@ -1,0 +1,37 @@
+# Railway Config cho Frontend
+
+## Settings trong Railway Dashboard:
+
+### Root Directory
+```
+Fontend_Quan_Ly_Sinh_Vien
+```
+
+### Build Command (để trống hoặc)
+```
+npm install && npm run build
+```
+
+### Start Command
+```
+npx vite preview --host 0.0.0.0 --port $PORT
+```
+
+### Environment Variables
+```
+VITE_API_BASE=https://YOUR-BACKEND-URL.railway.app/api
+```
+
+## Nếu vẫn lỗi npm:
+
+Railway tự động detect package.json và cài npm.
+Chỉ cần push code lại:
+
+```bash
+git add .
+git commit -m "Fix frontend Railway config"
+git push
+```
+
+Railway sẽ tự động redeploy.
+

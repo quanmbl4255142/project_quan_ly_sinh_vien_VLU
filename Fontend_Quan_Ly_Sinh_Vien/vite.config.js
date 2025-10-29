@@ -4,7 +4,12 @@ import { defineConfig } from 'vite'
 // Fast refresh still works with standard JSX transform
 export default defineConfig({
   server: {
-    port: 5173
+    port: 5173,
+    host: true
+  },
+  preview: {
+    port: 4173,
+    host: '0.0.0.0'
   },
   esbuild: {
     loader: 'jsx',

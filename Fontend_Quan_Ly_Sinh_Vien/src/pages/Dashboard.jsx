@@ -122,9 +122,9 @@ export default function Dashboard(){
                   </div>
                 </div>
               </Link>
-            </div>
           </div>
         </div>
+      </div>
 
         <div className="card bg-gradient-to-br from-indigo-50 to-purple-50">
           <div className="card-body">
