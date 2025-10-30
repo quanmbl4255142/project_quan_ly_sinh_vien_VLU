@@ -89,7 +89,7 @@ FLASK_ENV=production
 SECRET_KEY=your-super-secret-key-here-change-this
 JWT_SECRET_KEY=your-jwt-secret-key-here-change-this
 DATABASE_URL=${{MySQL.DATABASE_URL}}
-PORT=5000
+
 ```
 
 **Note:** `${{MySQL.DATABASE_URL}}` tự động lấy từ MySQL service

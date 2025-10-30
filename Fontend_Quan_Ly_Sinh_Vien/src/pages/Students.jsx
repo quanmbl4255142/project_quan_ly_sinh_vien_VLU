@@ -115,7 +115,7 @@ export default function Students(){
           <h4 className="text-2xl font-bold text-gray-800">Danh sách sinh viên</h4>
         </div>
         {isAdmin() && (
-          <button onClick={()=>openForm()} className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 text-sm font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center gap-2">
+          <button onClick={()=>openForm()} className="rounded-lg bg-indigo-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-indigo-700 transition-colors flex items-center gap-2">
             <span className="text-lg">➕</span> Thêm sinh viên
           </button>
         )}
@@ -160,10 +160,10 @@ export default function Students(){
                 </div>
                 {isAdmin() && (
                   <div className="flex items-center gap-2">
-                    <button onClick={()=>openForm(s)} className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center gap-1">
+                    <button onClick={()=>openForm(s)} className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1">
                       <span>✏️</span> Sửa
                     </button>
-                    <button onClick={()=>handleDelete(s.id)} className="rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center gap-1">
+                    <button onClick={()=>handleDelete(s.id)} className="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 transition-colors flex items-center gap-1">
                       <span>🗑️</span> Xóa
                     </button>
                   </div>

@@ -13,8 +13,9 @@ class Config:
     if DATABASE_URL and DATABASE_URL.startswith('mysql://'):
         DATABASE_URL = DATABASE_URL.replace('mysql://', 'mysql+pymysql://', 1)
     
-    # Fallback to localhost for development
-    SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'mysql+pymysql://root:Quan5599nguz@localhost/student_project_management'
+    # Fallback to localhost for development 
+    # student_project_management này nằm bên railway còn flaskshop
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'mysql+pymysql://root:Quan5599nguz@localhost/flaskshop'
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-string'

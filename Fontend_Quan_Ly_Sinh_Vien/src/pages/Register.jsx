@@ -105,7 +105,7 @@ export default function Register(){
               </div>
               
               <button 
-                className="w-full rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 font-bold text-lg hover:from-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" 
+                className="w-full rounded-lg bg-emerald-600 text-white py-3 font-bold text-lg hover:bg-emerald-700 shadow-lg hover:shadow-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" 
                 type="submit"
                 disabled={loading}
               >

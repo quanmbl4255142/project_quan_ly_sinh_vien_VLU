@@ -220,7 +220,7 @@ export default function Submissions(){
                     {isTeacherOrAdmin() && (
                       <>
                         <button onClick={()=>openReviewForm(sub)} className="rounded bg-amber-600 text-white px-2 py-1 text-xs hover:bg-amber-700">Review</button>
-                        <button onClick={()=>openEvalForm(sub)} className="rounded bg-purple-600 text-white px-2 py-1 text-xs hover:bg-purple-700">Đánh giá</button>
+                        <button onClick={()=>openEvalForm(sub)} className="rounded bg-violet-600 text-white px-2 py-1 text-xs hover:bg-violet-700">Đánh giá</button>
                       </>
                     )}
                     <button onClick={()=>openForm(sub)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Sửa</button>

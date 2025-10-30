@@ -138,7 +138,7 @@ export default function Projects(){
           <h4 className="text-2xl font-bold text-gray-800">Danh sách dự án</h4>
         </div>
         {isTeacherOrAdmin() && (
-          <button onClick={()=>openForm()} className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 text-sm font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center gap-2">
+          <button onClick={()=>openForm()} className="rounded-lg bg-green-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center gap-2">
             <span className="text-lg">➕</span> Thêm dự án
           </button>
         )}
@@ -187,11 +187,11 @@ export default function Projects(){
                 </div>
                 {isTeacherOrAdmin() && (
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
-                    <button onClick={()=>openForm(p)} className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center justify-center gap-1">
+                    <button onClick={()=>openForm(p)} className="flex-1 rounded-lg bg-blue-600 text-white px-3 py-2 text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-1">
                       <span>✏️</span> Sửa
                     </button>
                     {isAdmin() && (
-                      <button onClick={()=>handleDelete(p.id)} className="flex-1 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all flex items-center justify-center gap-1">
+                      <button onClick={()=>handleDelete(p.id)} className="flex-1 rounded-lg bg-red-600 text-white px-3 py-2 text-sm font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-1">
                         <span>🗑️</span> Xóa
                       </button>
                     )}

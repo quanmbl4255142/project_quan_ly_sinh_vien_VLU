@@ -75,7 +75,7 @@ export default function Login(){
               </div>
               
               <button 
-                className="w-full rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 font-bold text-lg hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" 
+                className="w-full rounded-lg bg-indigo-600 text-white py-3 font-bold text-lg hover:bg-indigo-700 shadow-lg hover:shadow-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" 
                 type="submit"
                 disabled={loading}
               >
