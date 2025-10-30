@@ -13,6 +13,8 @@ class Config:
     if DATABASE_URL and DATABASE_URL.startswith('mysql://'):
         DATABASE_URL = DATABASE_URL.replace('mysql://', 'mysql+pymysql://', 1)
     
+    
+    #  đang lỗi phần lấy dữ liệu từ railway
     # Fallback to localhost for development 
     # student_project_management này nằm bên railway còn flaskshop
     SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'mysql+pymysql://root:Quan5599nguz@localhost/student_project_management'
