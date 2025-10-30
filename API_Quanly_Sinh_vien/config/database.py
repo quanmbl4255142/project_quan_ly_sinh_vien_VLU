@@ -15,7 +15,7 @@ class Config:
     
     # Fallback to localhost for development 
     # student_project_management này nằm bên railway còn flaskshop
-    SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'mysql+pymysql://root:Quan5599nguz@localhost/flaskshop'
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'mysql+pymysql://root:Quan5599nguz@localhost/student_project_management'
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-string'
