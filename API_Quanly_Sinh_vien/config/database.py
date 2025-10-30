@@ -6,7 +6,7 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     
-    # Get DATABASE_URL from environment
+    # Get DATABASE_URL from environment check 1
     DATABASE_URL = os.environ.get('DATABASE_URL')
     
     # Railway MySQL uses 'mysql://' but SQLAlchemy needs 'mysql+pymysql://'
