@@ -10,7 +10,7 @@ class Config:
     DATABASE_URL = os.environ.get('DATABASE_URL')
     
     # Alternative: Build from individual MySQL variables if DATABASE_URL not available
-    if not DATABASE_URL:ss
+    if not DATABASE_URL:
         mysql_host = os.environ.get('MYSQL_HOST')
         mysql_user = os.environ.get('MYSQL_USER')
         mysql_password = os.environ.get('MYSQL_PASSWORD')
@@ -21,7 +21,7 @@ class Config:
             DATABASE_URL = f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_database}"
     
     # Railway NOT automatically provides DATABASE_URL with 'mysql://' prefix
-    # But if it does, convert to 'mysql+pymysql://'
+    # But if it does, convert to 'mysql+pymysql://'   xxx
     if DATABASE_URL and DATABASE_URL.startswith('mysql://'):
         DATABASE_URL = DATABASE_URL.replace('mysql://', 'mysql+pymysql://', 1)
     # If already has mysql+pymysql://, keep it
