@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import verify_jwt_in_request_optional, get_jwt_identity
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from utils.metrics import record_heartbeat
 
 monitor_bp = Blueprint('monitor', __name__)
@@ -16,7 +16,7 @@ def heartbeat():
         # Optional user id from JWT
         user_id = None
         try:
-            verify_jwt_in_request_optional()
+            verify_jwt_in_request(optional=True)
             ident = get_jwt_identity()
             if ident is not None:
                 user_id = int(ident)

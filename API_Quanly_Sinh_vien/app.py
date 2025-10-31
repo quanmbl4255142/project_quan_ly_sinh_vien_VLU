@@ -73,8 +73,8 @@ def create_app():
             # try to read user id from JWT if present
             user_id = None
             try:
-                from flask_jwt_extended import verify_jwt_in_request_optional, get_jwt_identity
-                verify_jwt_in_request_optional()
+                from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+                verify_jwt_in_request(optional=True)
                 identity = get_jwt_identity()
                 if identity is not None:
                     user_id = int(identity)
