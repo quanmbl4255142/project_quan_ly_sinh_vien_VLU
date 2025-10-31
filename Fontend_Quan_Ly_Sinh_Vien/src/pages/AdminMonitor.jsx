@@ -24,25 +24,30 @@ export default function AdminMonitor(){
     return () => { isMounted = false; clearInterval(timer) }
   }, [])
 
-  const Section = ({ title, children }) => (
-    <div className="bg-white rounded-xl shadow p-5">
-      <h3 className="font-semibold text-gray-700 mb-3">{title}</h3>
+  const Tile = ({ title, value, unit, color='from-gray-700 to-gray-800' }) => (
+    <div className={`rounded-xl p-5 bg-gradient-to-br ${color} text-white shadow-inner`}>
+      <div className="text-sm opacity-80 mb-2">{title}</div>
+      <div className="text-3xl font-extrabold tracking-tight">{value}{unit ? <span className="text-base ml-1 opacity-80">{unit}</span> : null}</div>
+    </div>
+  )
+
+  const Card = ({ title, children }) => (
+    <div className="bg-[#1f2937] text-gray-100 rounded-xl shadow border border-white/5 p-5">
+      <div className="font-semibold mb-3 opacity-90">{title}</div>
       {children}
     </div>
   )
 
-  const Stat = ({label, value}) => (
-    <div className="p-4 rounded-lg bg-gray-50">
-      <div className="text-2xl font-bold text-gray-800">{value}</div>
-      <div className="text-gray-500 text-sm">{label}</div>
-    </div>
-  )
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-800">👁️‍🗨️ Monitoring</h2>
-        <p className="text-gray-500">Các chỉ số runtime cơ bản (tự cập nhật mỗi 5 giây)</p>
+    <div className="space-y-6 bg-[#0b1220] -mx-6 px-6 py-4 rounded-xl">
+      <div className="flex items-end justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-white">📊 Tổng quan hệ thống</h2>
+          <p className="text-gray-400 text-sm">Tự cập nhật mỗi 5 giây • giao diện kiểu Grafana</p>
+        </div>
+        {metrics && (
+          <div className="text-gray-400 text-sm">Cập nhật lúc {new Date(metrics.generated_at*1000).toLocaleTimeString()}</div>
+        )}
       </div>
 
       {error && (
@@ -50,44 +55,43 @@ export default function AdminMonitor(){
       )}
 
       {!metrics ? (
-        <div className="text-gray-500">Đang tải...</div>
+        <div className="text-gray-400">Đang tải...</div>
       ) : (
         <>
-          <div className="grid md:grid-cols-3 gap-4">
-            <Stat label="Requests (15m)" value={metrics.totals.requests_15m} />
-            <Stat label="Active users (15m)" value={metrics.totals.active_users_15m} />
-            <Stat label="Generated at" value={new Date(metrics.generated_at*1000).toLocaleTimeString()} />
+          <div className="grid md:grid-cols-4 gap-4">
+            <Tile title="Requests (15m)" value={metrics.totals.requests_15m} color="from-indigo-700 to-indigo-800" />
+            <Tile title="Users online (1m)" value={metrics.totals.active_users_1m} color="from-emerald-700 to-emerald-800" />
+            <Tile title="Active users (15m)" value={metrics.totals.active_users_15m} color="from-sky-700 to-sky-800" />
+            <Tile title="Errors (1m)" value={metrics.last_1m.errors} color="from-rose-700 to-rose-800" />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <Section title="Last 1 minute">
+            <Card title="Last 1 minute">
               <div className="grid grid-cols-2 gap-3">
-                <Stat label="Requests" value={metrics.last_1m.requests} />
-                <Stat label="Errors" value={metrics.last_1m.errors} />
-                <Stat label="Avg ms" value={metrics.last_1m.avg_response_ms.toFixed(1)} />
-                <Stat label="p95 ms" value={metrics.last_1m.p95_response_ms.toFixed(1)} />
+                <Tile title="Requests" value={metrics.last_1m.requests} />
+                <Tile title="Avg response" value={metrics.last_1m.avg_response_ms.toFixed(1)} unit="ms" />
+                <Tile title="p95 response" value={metrics.last_1m.p95_response_ms.toFixed(1)} unit="ms" />
               </div>
-            </Section>
-
-            <Section title="Last 5 minutes">
+            </Card>
+            <Card title="Last 5 minutes">
               <div className="grid grid-cols-2 gap-3">
-                <Stat label="Requests" value={metrics.last_5m.requests} />
-                <Stat label="Errors" value={metrics.last_5m.errors} />
-                <Stat label="Avg ms" value={metrics.last_5m.avg_response_ms.toFixed(1)} />
-                <Stat label="p95 ms" value={metrics.last_5m.p95_response_ms.toFixed(1)} />
+                <Tile title="Requests" value={metrics.last_5m.requests} />
+                <Tile title="Avg response" value={metrics.last_5m.avg_response_ms.toFixed(1)} unit="ms" />
+                <Tile title="p95 response" value={metrics.last_5m.p95_response_ms.toFixed(1)} unit="ms" />
               </div>
-            </Section>
+            </Card>
           </div>
 
-          <Section title="Status codes (15m)">
-            <div className="flex flex-wrap gap-3">
+          <Card title="HTTP Status (15m)">
+            <div className="flex flex-wrap gap-2">
               {Object.entries(metrics.totals.by_status_15m).map(([code, count]) => (
-                <div key={code} className="px-4 py-2 rounded-lg bg-gray-50 border text-sm">
-                  <span className="font-semibold">{code}</span>: {count}
+                <div key={code} className="px-3 py-1.5 rounded-lg bg-white/10 text-sm">
+                  <span className="font-semibold">{code}</span>
+                  <span className="opacity-80"> · {count}</span>
                 </div>
               ))}
             </div>
-          </Section>
+          </Card>
         </>
       )}
     </div>

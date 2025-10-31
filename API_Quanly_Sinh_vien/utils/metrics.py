@@ -53,8 +53,9 @@ class MetricsCollector:
                 'p95_response_ms': p95,
             }
 
-        # Unique active users in last 15m
-        active_users = len({r[3] for r in items if r[3] is not None})
+        # Unique active users
+        active_users_15m = len({r[3] for r in items if r[3] is not None})
+        active_users_1m = len({r[3] for r in last_1m if r[3] is not None})
 
         by_status = defaultdict(int)
         for _, status, _, _ in items:
@@ -63,7 +64,8 @@ class MetricsCollector:
         return {
             'totals': {
                 'requests_15m': total,
-                'active_users_15m': active_users,
+                'active_users_15m': active_users_15m,
+                'active_users_1m': active_users_1m,
                 'by_status_15m': dict(by_status),
             },
             'last_1m': agg(last_1m),
