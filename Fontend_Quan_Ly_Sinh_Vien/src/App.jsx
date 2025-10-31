@@ -9,6 +9,7 @@ import Teams from './pages/Teams'
 import Submissions from './pages/Submissions'
 import Profile from './pages/Profile'
 import AdminUsers from './pages/AdminUsers'
+import AdminMonitor from './pages/AdminMonitor'
 import NavBar from './components/Nav'
 
 function PrivateRoute({ children }){
@@ -38,6 +39,7 @@ export default function App(){
           <Route path="/submissions" element={<PrivateRoute><Submissions /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+          <Route path="/admin/monitor" element={<AdminRoute><AdminMonitor /></AdminRoute>} />
         </Routes>
       </div>
     </div>

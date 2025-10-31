@@ -245,3 +245,8 @@ export async function deleteUser(id){
 export async function getAdminStatistics(){
   return request('/admin/statistics')
 }
+
+// ===== Monitoring =====
+export async function getAdminMetrics(){
+  return request('/admin/metrics')
+}

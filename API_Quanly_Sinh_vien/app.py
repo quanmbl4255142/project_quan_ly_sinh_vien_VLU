@@ -1,8 +1,9 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, g, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from config.database import Config
 from models import init_db, db
+from utils.metrics import metrics_collector
 import os
 
 def create_app():
@@ -54,6 +55,34 @@ def create_app():
             }
         })
     
+    @app.before_request
+    def _metrics_before_request():
+        g._metrics_start = os.times()[4] if hasattr(os, 'times') else None
+
+    @app.after_request
+    def _metrics_after_request(response):
+        try:
+            start = getattr(g, '_metrics_start', None)
+            if start is not None:
+                end = os.times()[4] if hasattr(os, 'times') else None
+                duration_ms = max((end - start) * 1000.0, 0) if end is not None else 0
+            else:
+                duration_ms = 0
+            # try to read user id from JWT if present
+            user_id = None
+            try:
+                from flask_jwt_extended import verify_jwt_in_request_optional, get_jwt_identity
+                verify_jwt_in_request_optional()
+                identity = get_jwt_identity()
+                if identity is not None:
+                    user_id = int(identity)
+            except Exception:
+                user_id = None
+            metrics_collector.record_request(response.status_code, duration_ms, user_id)
+        except Exception:
+            pass
+        return response
+
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({'error': 'Not found'}), 404

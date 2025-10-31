@@ -29,7 +29,10 @@ export default function NavBar(){
                 <Link to="/teams" className="hover:text-white font-medium hover:scale-105 transition-all">👥 Teams</Link>
                 <Link to="/submissions" className="hover:text-white font-medium hover:scale-105 transition-all">📝 Submissions</Link>
                 {user?.role === 'admin' && (
-                  <Link to="/admin/users" className="hover:text-white font-medium hover:scale-105 transition-all bg-red-500/20 px-3 py-1 rounded-lg">👑 Admin</Link>
+                  <>
+                    <Link to="/admin/users" className="hover:text-white font-medium hover:scale-105 transition-all bg-red-500/20 px-3 py-1 rounded-lg">👑 Admin</Link>
+                    <Link to="/admin/monitor" className="hover:text-white font-medium hover:scale-105 transition-all bg-amber-500/20 px-3 py-1 rounded-lg">📈 Monitor</Link>
+                  </>
                 )}
               </>
             )}
@@ -60,6 +63,12 @@ export default function NavBar(){
             <Link to="/projects" className="hover:text-white/90">Projects</Link>
             <Link to="/teams" className="hover:text-white/90">Teams</Link>
             <Link to="/submissions" className="hover:text-white/90">Submissions</Link>
+            {user?.role === 'admin' && (
+              <>
+                <Link to="/admin/users" className="hover:text-white/90">Admin</Link>
+                <Link to="/admin/monitor" className="hover:text-white/90">Monitor</Link>
+              </>
+            )}
           </nav>
         )}
       </div>

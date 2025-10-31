@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, User
 from utils.decorators import admin_required
+from utils.metrics import metrics_collector
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -15,6 +16,16 @@ def get_all_users():
         return jsonify({
             'users': [user.to_dict() for user in users]
         }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/metrics', methods=['GET'])
+@jwt_required()
+@admin_required
+def get_metrics():
+    """Admin: Lightweight runtime metrics for monitoring"""
+    try:
+        return jsonify(metrics_collector.snapshot()), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
