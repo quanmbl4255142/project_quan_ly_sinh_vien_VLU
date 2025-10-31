@@ -33,7 +33,13 @@ class Config:
     # Fallback to localhost for development only
     SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'mysql+pymysql://root:Quan5599nguz@localhost/flaskshop'
     
-    # Debug: Biết cách log connection để debug
+    # Debug: Print all database-related environment variables
+    print("🔍 Debug Database Configuration:")
+    print(f"   DATABASE_URL exists: {bool(os.environ.get('DATABASE_URL'))}")
+    print(f"   MYSQL_HOST: {os.environ.get('MYSQL_HOST', 'NOT SET')}")
+    print(f"   MYSQL_USER: {os.environ.get('MYSQL_USER', 'NOT SET')}")
+    print(f"   MYSQL_DATABASE: {os.environ.get('MYSQL_DATABASE', 'NOT SET')}")
+    
     if DATABASE_URL:
         # Hide password in log
         safe_url = DATABASE_URL
@@ -44,12 +50,14 @@ class Config:
                 if ':' in creds:
                     user = creds.split(':')[0]
                     safe_url = DATABASE_URL.replace(creds, f"{user}:***", 1)
-        print(f"🔗 Database URL: {safe_url}")
+        print(f"✅ Database URL: {safe_url}")
     else:
-        print("⚠️  WARNING: DATABASE_URL not set! Using localhost fallback")
+        print("❌ WARNING: DATABASE_URL not set! Using localhost fallback")
         print("   💡 Solution: Add DATABASE_URL variable in Railway Backend service")
-        print("   💡 Option 1: Link MySQL service in Settings → Connected Services")
-        print("   💡 Option 2: Add variable: DATABASE_URL = ${{MySQL.DATABASE_URL}}")
+        print("   💡 Step 1: Go to Backend service → Variables tab")
+        print("   💡 Step 2: Click '+ New Variable'")
+        print("   💡 Step 3: Key: DATABASE_URL")
+        print("   💡 Step 4: Value: mysql://root:...@mysql.railway.internal:3306/railway")
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-string'
