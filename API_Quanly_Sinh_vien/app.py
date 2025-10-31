@@ -11,7 +11,14 @@ def create_app():
     
     # Initialize extensions
     init_db(app)
-    CORS(app)
+    
+    # CORS configuration - allow frontend origin
+    frontend_url = os.environ.get('FRONTEND_URL', '*')
+    CORS(app, 
+         resources={r"/api/*": {"origins": frontend_url if frontend_url != '*' else "*"}},
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization"])
+    
     jwt = JWTManager(app)
     
     # Import and register blueprints

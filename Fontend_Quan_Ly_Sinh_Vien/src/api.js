@@ -1,5 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api'
-// Debug: log resolved API base to verify env is applied at build time
+// Get API base from runtime config (injected in index.html) or build-time env
+const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__ && window.__API_BASE__ !== 'REPLACE_WITH_API_BASE') 
+  ? window.__API_BASE__ 
+  : (import.meta.env.VITE_API_BASE || 'http://localhost:5000/api')
+
+// Debug: log resolved API base
 if (typeof window !== 'undefined') {
   try { console.log('[API_BASE]', API_BASE) } catch (_) {}
 }
