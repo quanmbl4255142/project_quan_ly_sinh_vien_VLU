@@ -9,7 +9,7 @@ import json
 import time
 from datetime import datetime
 
-# Cấu hình
+# Cấu hình để test dữ liệu
 BASE_URL = "http://localhost:5000"
 API_BASE = f"{BASE_URL}/api"
 
