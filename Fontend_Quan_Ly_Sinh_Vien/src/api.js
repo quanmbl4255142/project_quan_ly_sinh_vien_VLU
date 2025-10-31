@@ -1,4 +1,8 @@
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api'
+// Debug: log resolved API base to verify env is applied at build time
+if (typeof window !== 'undefined') {
+  try { console.log('[API_BASE]', API_BASE) } catch (_) {}
+}
 
 async function request(path, options = {}){
   const headers = options.headers || {}
@@ -8,7 +12,12 @@ async function request(path, options = {}){
   }
   headers['Content-Type'] = headers['Content-Type'] || 'application/json'
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
+  const url = `${API_BASE}${path}`
+  // Debug: log the final request URL
+  if (typeof window !== 'undefined') {
+    try { console.log('[fetch]', url) } catch (_) {}
+  }
+  const res = await fetch(url, { ...options, headers })
   const text = await res.text()
   try{
     const data = text ? JSON.parse(text) : {}
