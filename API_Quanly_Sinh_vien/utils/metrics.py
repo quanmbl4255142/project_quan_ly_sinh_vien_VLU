@@ -3,6 +3,9 @@ import threading
 from collections import deque, defaultdict
 
 
+ONLINE_WINDOW_SEC = 20  # threshold to consider a user "online"
+
+
 class MetricsCollector:
     """In-memory metrics for lightweight monitoring.
 
@@ -13,6 +16,7 @@ class MetricsCollector:
         self.window_seconds = window_seconds
         self._lock = threading.Lock()
         self._requests = deque()  # (ts, status, duration_ms, user_id)
+        self._heartbeats = {}  # session_id -> (last_seen_ts, user_id)
 
     def _purge_old(self, now: float):
         cutoff = now - self.window_seconds
@@ -30,6 +34,9 @@ class MetricsCollector:
         with self._lock:
             self._purge_old(now)
             items = list(self._requests)
+            # Purge old heartbeats (older than window)
+            cutoff = now - self.window_seconds
+            self._heartbeats = {sid: (ts, uid) for sid, (ts, uid) in self._heartbeats.items() if ts >= cutoff}
 
         # Aggregate
         total = len(items)
@@ -57,6 +64,10 @@ class MetricsCollector:
         active_users_15m = len({r[3] for r in items if r[3] is not None})
         active_users_1m = len({r[3] for r in last_1m if r[3] is not None})
 
+        # Heartbeat-based online metrics (more accurate for "users on site")
+        online_clients_1m = len([1 for _, (ts, _) in self._heartbeats.items() if ts >= now - ONLINE_WINDOW_SEC])
+        online_users_1m = len({uid for (_, (ts, uid)) in self._heartbeats.items() if ts >= now - ONLINE_WINDOW_SEC and uid is not None})
+
         by_status = defaultdict(int)
         for _, status, _, _ in items:
             by_status[status] += 1
@@ -66,6 +77,8 @@ class MetricsCollector:
                 'requests_15m': total,
                 'active_users_15m': active_users_15m,
                 'active_users_1m': active_users_1m,
+                'online_clients_1m': online_clients_1m,
+                'online_users_1m': online_users_1m,
                 'by_status_15m': dict(by_status),
             },
             'last_1m': agg(last_1m),
@@ -76,5 +89,12 @@ class MetricsCollector:
 
 # Singleton instance used by app
 metrics_collector = MetricsCollector()
+
+def record_heartbeat(session_id: str, user_id: int | None):
+    now = time.time()
+    if not session_id:
+        return
+    with metrics_collector._lock:
+        metrics_collector._heartbeats[session_id] = (now, user_id)
 
 

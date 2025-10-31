@@ -250,3 +250,7 @@ export async function getAdminStatistics(){
 export async function getAdminMetrics(){
   return request('/admin/metrics')
 }
+
+export async function heartbeat(clientId){
+  return request('/monitor/heartbeat', { method: 'POST', body: JSON.stringify({ client_id: clientId }) })
+}

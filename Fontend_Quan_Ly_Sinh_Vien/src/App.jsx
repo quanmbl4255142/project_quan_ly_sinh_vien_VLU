@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -11,6 +11,7 @@ import Profile from './pages/Profile'
 import AdminUsers from './pages/AdminUsers'
 import AdminMonitor from './pages/AdminMonitor'
 import NavBar from './components/Nav'
+import { heartbeat } from './api'
 
 function PrivateRoute({ children }){
   const token = localStorage.getItem('token')
@@ -24,6 +25,22 @@ function AdminRoute({ children }){
 }
 
 export default function App(){
+  useEffect(() => {
+    // persistent client id
+    let cid = localStorage.getItem('client_id')
+    if(!cid){
+      cid = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+      localStorage.setItem('client_id', cid)
+    }
+    let timer
+    const tick = async () => {
+      try{ await heartbeat(cid) }catch(_){ /* ignore */ }
+    }
+    tick()
+    timer = setInterval(tick, 10000)
+    return () => clearInterval(timer)
+  }, [])
+
   return (
     <div>
       <NavBar />
