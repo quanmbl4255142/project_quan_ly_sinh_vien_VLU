@@ -10,7 +10,7 @@ class Config:
     DATABASE_URL = os.environ.get('DATABASE_URL')
     
     # Alternative: Build from individual MySQL variables if DATABASE_URL not available
-    if not DATABASE_URL:
+    if not DATABASE_URL:ss
         mysql_host = os.environ.get('MYSQL_HOST')
         mysql_user = os.environ.get('MYSQL_USER')
         mysql_password = os.environ.get('MYSQL_PASSWORD')
