@@ -166,3 +166,47 @@ def get_admin_statistics():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@admin_bp.route('/seed-data', methods=['POST'])
+@jwt_required()
+@admin_required
+def seed_data_endpoint():
+    """Admin: Seed fake data into database"""
+    try:
+        import sys
+        import io
+        from contextlib import redirect_stdout
+        
+        # Import seed function
+        from seed_data import seed_data
+        
+        # Capture output
+        output = io.StringIO()
+        with redirect_stdout(output):
+            seed_data()
+        
+        output_str = output.getvalue()
+        
+        # Get final statistics
+        from models import Student, Teacher, Project, Team, ProjectSubmission
+        
+        stats = {
+            'users': User.query.count(),
+            'students': Student.query.count(),
+            'teachers': Teacher.query.count(),
+            'projects': Project.query.count(),
+            'teams': Team.query.count(),
+            'submissions': ProjectSubmission.query.count()
+        }
+        
+        return jsonify({
+            'message': 'Seed data completed successfully',
+            'output': output_str,
+            'statistics': stats
+        }), 200
+    except Exception as e:
+        import traceback
+        return jsonify({
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
