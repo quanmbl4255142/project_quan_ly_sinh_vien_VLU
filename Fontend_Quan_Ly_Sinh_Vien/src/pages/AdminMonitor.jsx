@@ -59,10 +59,10 @@ export default function AdminMonitor(){
       ) : (
         <>
           <div className="grid md:grid-cols-4 gap-4">
-            <Tile title="Requests (15m)" value={metrics.totals.requests_15m} color="from-indigo-700 to-indigo-800" />
-            <Tile title="Users online (logged-in)" value={metrics.totals.online_users_1m} color="from-emerald-700 to-emerald-800" />
-            <Tile title="Active users (15m)" value={metrics.totals.active_users_15m} color="from-sky-700 to-sky-800" />
-            <Tile title="Errors (1m)" value={metrics.last_1m.errors} color="from-rose-700 to-rose-800" />
+            <Tile title="Requests (15m)" value={metrics.totals.requests_15m} color="from-blue-700 to-blue-800" />
+            <Tile title="Users online (logged-in)" value={metrics.totals.online_users_1m} color="from-blue-700 to-blue-800" />
+            <Tile title="Active users (15m)" value={metrics.totals.active_users_15m} color="from-blue-700 to-blue-800" />
+            <Tile title="Errors (1m)" value={metrics.last_1m.errors} color="from-blue-700 to-blue-800" />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">

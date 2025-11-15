@@ -13,10 +13,10 @@ export default function NavBar(){
   }
 
   return (
-    <header className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 text-white shadow-lg">
+    <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-600 text-white shadow-lg">
       <div className="app-container">
         <div className="flex items-center justify-between py-4">
-          <Link to="/" className="text-xl font-bold tracking-tight hover:text-indigo-100 transition-colors flex items-center gap-2">
+          <Link to="/" className="text-xl font-bold tracking-tight hover:text-blue-100 transition-colors flex items-center gap-2">
             <span className="text-2xl">📚</span>
             <span>QL Dự án SV</span>
           </Link>
@@ -30,8 +30,8 @@ export default function NavBar(){
                 <Link to="/submissions" className="hover:text-white font-medium hover:scale-105 transition-all">📝 Submissions</Link>
                 {user?.role === 'admin' && (
                   <>
-                    <Link to="/admin/users" className="hover:text-white font-medium hover:scale-105 transition-all bg-red-500/20 px-3 py-1 rounded-lg">👑 Admin</Link>
-                    <Link to="/admin/monitor" className="hover:text-white font-medium hover:scale-105 transition-all bg-amber-500/20 px-3 py-1 rounded-lg">📈 Monitor</Link>
+                    <Link to="/admin/users" className="hover:text-white font-medium hover:scale-105 transition-all bg-blue-500/20 px-3 py-1 rounded-lg">👑 Admin</Link>
+                    <Link to="/admin/monitor" className="hover:text-white font-medium hover:scale-105 transition-all bg-blue-500/20 px-3 py-1 rounded-lg">📈 Monitor</Link>
                   </>
                 )}
               </>
@@ -44,14 +44,14 @@ export default function NavBar(){
                   <span className="text-lg">👤</span>
                   <span className="font-medium">{user ? user.username : ''}</span>
                 </span>
-                <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-lg border-2 border-white/30 px-4 py-2 text-sm font-medium hover:bg-white hover:text-indigo-600 transition-all">
+                <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-lg border-2 border-white/30 px-4 py-2 text-sm font-medium hover:bg-white hover:text-blue-600 transition-all">
                   <span>🚪</span> Logout
                 </button>
               </>
             ) : (
               <>
-                <Link className="rounded-lg bg-white text-indigo-600 px-4 py-2 text-sm font-bold hover:bg-indigo-50 hover:shadow-lg transition-all" to="/login">🔑 Đăng nhập</Link>
-                <Link className="rounded-lg border-2 border-white/50 px-4 py-2 text-sm font-medium hover:bg-white hover:text-indigo-600 transition-all" to="/register">✨ Đăng ký</Link>
+                <Link className="rounded-lg bg-white text-blue-600 px-4 py-2 text-sm font-bold hover:bg-blue-50 hover:shadow-lg transition-all" to="/login">🔑 Đăng nhập</Link>
+                <Link className="rounded-lg border-2 border-white/50 px-4 py-2 text-sm font-medium hover:bg-white hover:text-blue-600 transition-all" to="/register">✨ Đăng ký</Link>
               </>
             )}
           </div>

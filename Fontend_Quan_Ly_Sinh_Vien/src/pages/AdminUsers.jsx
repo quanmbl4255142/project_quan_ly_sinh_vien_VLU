@@ -102,24 +102,24 @@ export default function AdminUsers(){
               <div className="card-body flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold group-hover:scale-110 transition-transform
-                    ${u.role === 'admin' ? 'bg-gradient-to-br from-red-400 to-red-600' : 
-                      u.role === 'teacher' ? 'bg-gradient-to-br from-green-400 to-green-600' : 
-                      'bg-gradient-to-br from-blue-400 to-purple-500'}`}>
+                    ${u.role === 'admin' ? 'bg-gradient-to-br from-blue-400 to-blue-600' : 
+                      u.role === 'teacher' ? 'bg-gradient-to-br from-blue-400 to-blue-600' : 
+                      'bg-gradient-to-br from-blue-400 to-blue-500'}`}>
                     {u.role === 'admin' ? '👑' : u.role === 'teacher' ? '👨‍🏫' : '👨‍🎓'}
                   </div>
                   <div>
                     <div className="font-bold text-lg text-gray-800 flex items-center gap-2">
                       {u.username}
                       <span className={`px-3 py-1 rounded-full text-xs font-medium
-                        ${u.role === 'admin' ? 'bg-red-100 text-red-700' : 
-                          u.role === 'teacher' ? 'bg-green-100 text-green-700' : 
+                        ${u.role === 'admin' ? 'bg-blue-100 text-blue-700' : 
+                          u.role === 'teacher' ? 'bg-blue-100 text-blue-700' : 
                           'bg-blue-100 text-blue-700'}`}>
                         {u.role}
                       </span>
                     </div>
                     <div className="text-gray-600 text-sm">📧 {u.email}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      Trạng thái: <span className={`font-medium ${u.is_active ? 'text-green-600' : 'text-red-600'}`}>
+                      Trạng thái: <span className={`font-medium ${u.is_active ? 'text-blue-600' : 'text-gray-600'}`}>
                         {u.is_active ? '✅ Active' : '🚫 Inactive'}
                       </span>
                     </div>
@@ -129,7 +129,7 @@ export default function AdminUsers(){
                   <select 
                     value={u.role} 
                     onChange={(e)=>handleChangeRole(u.id, e.target.value)}
-                    className="rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled={u.id === user?.id}
                   >
                     <option value="admin">Admin</option>
@@ -139,7 +139,7 @@ export default function AdminUsers(){
                   <button 
                     onClick={()=>handleToggleActive(u.id)} 
                     className={`rounded-lg px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all
-                      ${u.is_active ? 'bg-gradient-to-r from-red-500 to-red-600 text-white' : 'bg-gradient-to-r from-green-500 to-green-600 text-white'}`}
+                      ${u.is_active ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'}`}
                     disabled={u.id === user?.id}
                   >
                     {u.is_active ? '🚫 Khóa' : '✅ Mở khóa'}
@@ -147,7 +147,7 @@ export default function AdminUsers(){
                   {u.id !== user?.id && (
                     <button 
                       onClick={()=>handleDeleteUser(u.id)} 
-                      className="rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all">
+                      className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all">
                       🗑️ Xóa
                     </button>
                   )}

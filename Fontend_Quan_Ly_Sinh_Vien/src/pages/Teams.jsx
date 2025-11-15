@@ -152,7 +152,7 @@ export default function Teams(){
     <div>
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-lg font-semibold">Danh sách nhóm</h4>
-        <button onClick={()=>openForm()} className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+        <button onClick={()=>openForm()} className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">
           + Thêm nhóm
         </button>
       </div>
@@ -171,7 +171,7 @@ export default function Teams(){
               <div className="card-body">
                 <div className="flex items-start justify-between mb-2">
                   <h5 className="font-semibold">{t.team_name}</h5>
-                  <span className={`text-xs px-2 py-0.5 rounded ${t.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{t.status}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded ${t.status === 'active' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>{t.status}</span>
                 </div>
                 <div className="text-sm text-gray-600 space-y-1">
                   <div>Dự án: {projects.find(p => p.id === t.project_id)?.title || '—'}</div>
@@ -179,9 +179,9 @@ export default function Teams(){
                   <div>Thành viên: {t.members?.length || 0}</div>
                 </div>
                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200">
-                  <button onClick={()=>openMemberForm(t)} className="rounded bg-emerald-600 text-white px-2 py-1 text-xs hover:bg-emerald-700">Thành viên</button>
+                  <button onClick={()=>openMemberForm(t)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Thành viên</button>
                   <button onClick={()=>openForm(t)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Sửa</button>
-                  <button onClick={()=>handleDelete(t.id)} className="rounded bg-red-600 text-white px-2 py-1 text-xs hover:bg-red-700">Xóa</button>
+                  <button onClick={()=>handleDelete(t.id)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Xóa</button>
                 </div>
               </div>
             </div>
@@ -198,25 +198,25 @@ export default function Teams(){
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Tên nhóm *</label>
-                  <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.team_name} onChange={e=>setFormData({...formData, team_name: e.target.value})} required />
+                  <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.team_name} onChange={e=>setFormData({...formData, team_name: e.target.value})} required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Dự án *</label>
-                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.project_id} onChange={e=>setFormData({...formData, project_id: e.target.value})} required>
+                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.project_id} onChange={e=>setFormData({...formData, project_id: e.target.value})} required>
                     <option value="">-- Chọn dự án --</option>
                     {projects.map(p => <option key={p.id} value={p.id}>{p.title || p.project_code}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Trưởng nhóm *</label>
-                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.leader_id} onChange={e=>setFormData({...formData, leader_id: e.target.value})} required>
+                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.leader_id} onChange={e=>setFormData({...formData, leader_id: e.target.value})} required>
                     <option value="">-- Chọn trưởng nhóm --</option>
                     {students.map(s => <option key={s.id} value={s.id}>{s.full_name || s.student_code}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Trạng thái</label>
-                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})}>
+                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})}>
                     <option value="forming">Forming</option>
                     <option value="active">Active</option>
                     <option value="completed">Completed</option>
@@ -225,7 +225,7 @@ export default function Teams(){
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={closeForm} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Hủy</button>
-                  <button type="submit" className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">Lưu</button>
+                  <button type="submit" className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">Lưu</button>
                 </div>
               </form>
             </div>
@@ -242,7 +242,7 @@ export default function Teams(){
               <form onSubmit={handleAddMember} className="mb-4">
                 <label className="block text-sm font-medium mb-1">Thêm thành viên</label>
                 <div className="flex gap-2">
-                  <select className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={newMemberId} onChange={e=>setNewMemberId(e.target.value)}>
+                  <select className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={newMemberId} onChange={e=>setNewMemberId(e.target.value)}>
                     <option value="">-- Chọn sinh viên --</option>
                     {students.map(s => <option key={s.id} value={s.id}>{s.full_name || s.student_code}</option>)}
                   </select>

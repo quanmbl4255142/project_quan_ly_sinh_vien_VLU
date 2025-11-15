@@ -138,7 +138,7 @@ export default function Projects(){
           <h4 className="text-2xl font-bold text-gray-800">Danh sách dự án</h4>
         </div>
         {isTeacherOrAdmin() && (
-          <button onClick={()=>openForm()} className="rounded-lg bg-green-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center gap-2">
+          <button onClick={()=>openForm()} className="rounded-lg bg-blue-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
             <span className="text-lg">➕</span> Thêm dự án
           </button>
         )}
@@ -163,14 +163,14 @@ export default function Projects(){
           )}
           {projects.map(p => (
             <div key={p.id} className="card group hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-200/30 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
               <div className="card-body relative z-10">
                 <div className="flex items-start justify-between mb-3">
                   <h5 className="font-bold text-lg text-gray-800 flex items-center gap-2">
                     <span className="text-2xl">📁</span>
                     <span className="line-clamp-1">{p.title || p.project_code}</span>
                   </h5>
-                  <span className={`text-xs px-3 py-1 rounded-full font-medium ${p.status === 'published' ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                  <span className={`text-xs px-3 py-1 rounded-full font-medium ${p.status === 'published' ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
                     {p.status}
                   </span>
                 </div>
@@ -191,7 +191,7 @@ export default function Projects(){
                       <span>✏️</span> Sửa
                     </button>
                     {isAdmin() && (
-                      <button onClick={()=>handleDelete(p.id)} className="flex-1 rounded-lg bg-red-600 text-white px-3 py-2 text-sm font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-1">
+                      <button onClick={()=>handleDelete(p.id)} className="flex-1 rounded-lg bg-blue-600 text-white px-3 py-2 text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-1">
                         <span>🗑️</span> Xóa
                       </button>
                     )}
@@ -215,33 +215,33 @@ export default function Projects(){
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Mã dự án *</label>
-                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.project_code} onChange={e=>setFormData({...formData, project_code: e.target.value})} required />
+                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.project_code} onChange={e=>setFormData({...formData, project_code: e.target.value})} required />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Tiêu đề *</label>
-                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.title} onChange={e=>setFormData({...formData, title: e.target.value})} required />
+                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.title} onChange={e=>setFormData({...formData, title: e.target.value})} required />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Mô tả</label>
-                  <textarea rows="3" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.description} onChange={e=>setFormData({...formData, description: e.target.value})}></textarea>
+                  <textarea rows="3" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.description} onChange={e=>setFormData({...formData, description: e.target.value})}></textarea>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Yêu cầu</label>
-                  <textarea rows="2" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.requirements} onChange={e=>setFormData({...formData, requirements: e.target.value})}></textarea>
+                  <textarea rows="2" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.requirements} onChange={e=>setFormData({...formData, requirements: e.target.value})}></textarea>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Mục tiêu</label>
-                  <textarea rows="2" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.objectives} onChange={e=>setFormData({...formData, objectives: e.target.value})}></textarea>
+                  <textarea rows="2" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.objectives} onChange={e=>setFormData({...formData, objectives: e.target.value})}></textarea>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Công nghệ</label>
-                  <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.technology_stack} onChange={e=>setFormData({...formData, technology_stack: e.target.value})} />
+                  <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.technology_stack} onChange={e=>setFormData({...formData, technology_stack: e.target.value})} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Mức độ</label>
-                    <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.difficulty_level} onChange={e=>setFormData({...formData, difficulty_level: e.target.value})}>
+                    <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.difficulty_level} onChange={e=>setFormData({...formData, difficulty_level: e.target.value})}>
                       <option value="beginner">Beginner</option>
                       <option value="intermediate">Intermediate</option>
                       <option value="advanced">Advanced</option>
@@ -249,11 +249,11 @@ export default function Projects(){
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Thời gian (tuần)</label>
-                    <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.estimated_duration} onChange={e=>setFormData({...formData, estimated_duration: e.target.value})} />
+                    <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.estimated_duration} onChange={e=>setFormData({...formData, estimated_duration: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Trạng thái</label>
-                    <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})}>
+                    <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})}>
                       <option value="draft">Draft</option>
                       <option value="published">Published</option>
                       <option value="in_progress">In Progress</option>
@@ -265,39 +265,39 @@ export default function Projects(){
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Số thành viên tối thiểu</label>
-                    <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.min_team_size} onChange={e=>setFormData({...formData, min_team_size: e.target.value})} />
+                    <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.min_team_size} onChange={e=>setFormData({...formData, min_team_size: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Số thành viên tối đa</label>
-                    <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.max_team_size} onChange={e=>setFormData({...formData, max_team_size: e.target.value})} />
+                    <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.max_team_size} onChange={e=>setFormData({...formData, max_team_size: e.target.value})} />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Giáo viên hướng dẫn</label>
-                    <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.supervisor_id} onChange={e=>setFormData({...formData, supervisor_id: e.target.value})}>
+                    <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.supervisor_id} onChange={e=>setFormData({...formData, supervisor_id: e.target.value})}>
                       <option value="">-- Chọn giáo viên --</option>
                       {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name || t.teacher_code}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Deadline</label>
-                    <input type="datetime-local" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.deadline} onChange={e=>setFormData({...formData, deadline: e.target.value})} />
+                    <input type="datetime-local" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.deadline} onChange={e=>setFormData({...formData, deadline: e.target.value})} />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Học kỳ</label>
-                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.semester} onChange={e=>setFormData({...formData, semester: e.target.value})} placeholder="Fall2024" />
+                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.semester} onChange={e=>setFormData({...formData, semester: e.target.value})} placeholder="Fall2024" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Năm học</label>
-                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.academic_year} onChange={e=>setFormData({...formData, academic_year: e.target.value})} placeholder="2024-2025" />
+                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.academic_year} onChange={e=>setFormData({...formData, academic_year: e.target.value})} placeholder="2024-2025" />
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={closeForm} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Hủy</button>
-                  <button type="submit" className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">Lưu</button>
+                  <button type="submit" className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">Lưu</button>
                 </div>
               </form>
             </div>

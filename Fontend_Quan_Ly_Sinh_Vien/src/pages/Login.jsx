@@ -50,7 +50,7 @@ export default function Login(){
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-gray-400">👤</span>
                   <input 
-                    className="w-full rounded-lg border-2 border-gray-200 pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+                    className="w-full rounded-lg border-2 border-gray-200 pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
                     placeholder="Nhập tên đăng nhập"
                     value={username} 
                     onChange={e=>setUsername(e.target.value)}
@@ -65,7 +65,7 @@ export default function Login(){
                   <span className="absolute left-3 top-3 text-gray-400">🔒</span>
                   <input 
                     type="password" 
-                    className="w-full rounded-lg border-2 border-gray-200 pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+                    className="w-full rounded-lg border-2 border-gray-200 pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
                     placeholder="Nhập mật khẩu"
                     value={password} 
                     onChange={e=>setPassword(e.target.value)}
@@ -75,7 +75,7 @@ export default function Login(){
               </div>
               
               <button 
-                className="w-full rounded-lg bg-indigo-600 text-white py-3 font-bold text-lg hover:bg-indigo-700 shadow-lg hover:shadow-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" 
+                className="w-full rounded-lg bg-blue-600 text-white py-3 font-bold text-lg hover:bg-blue-700 shadow-lg hover:shadow-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" 
                 type="submit"
                 disabled={loading}
               >
@@ -93,7 +93,7 @@ export default function Login(){
             
             <div className="mt-6 text-center">
               <p className="text-gray-600">Chưa có tài khoản?</p>
-              <a className="text-indigo-600 font-semibold hover:text-indigo-800 hover:underline inline-flex items-center gap-1" href="/register">
+              <a className="text-blue-600 font-semibold hover:text-blue-800 hover:underline inline-flex items-center gap-1" href="/register">
                 Tạo tài khoản mới <span>✨</span>
               </a>
             </div>

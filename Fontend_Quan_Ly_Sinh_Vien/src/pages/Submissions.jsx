@@ -189,7 +189,7 @@ export default function Submissions(){
     <div>
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-lg font-semibold">Danh sách bài nộp</h4>
-        <button onClick={()=>openForm()} className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+        <button onClick={()=>openForm()} className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">
           + Thêm bài nộp
         </button>
       </div>
@@ -212,20 +212,20 @@ export default function Submissions(){
                     <div className="text-sm text-gray-600 mt-1 space-y-0.5">
                       <div>Dự án: {projects.find(p => p.id === sub.project_id)?.title || '—'}</div>
                       <div>Loại: {sub.submission_type} - {sub.submission_category}</div>
-                      <div>Trạng thái: <span className={`px-2 py-0.5 rounded text-xs ${sub.status === 'approved' ? 'bg-green-100 text-green-700' : sub.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{sub.status || 'pending'}</span></div>
+                      <div>Trạng thái: <span className={`px-2 py-0.5 rounded text-xs ${sub.status === 'approved' ? 'bg-blue-100 text-blue-700' : sub.status === 'rejected' ? 'bg-gray-100 text-gray-700' : 'bg-blue-100 text-blue-700'}`}>{sub.status || 'pending'}</span></div>
                       {sub.description && <div className="text-gray-500">{sub.description}</div>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
                     {isTeacherOrAdmin() && (
                       <>
-                        <button onClick={()=>openReviewForm(sub)} className="rounded bg-amber-600 text-white px-2 py-1 text-xs hover:bg-amber-700">Review</button>
-                        <button onClick={()=>openEvalForm(sub)} className="rounded bg-violet-600 text-white px-2 py-1 text-xs hover:bg-violet-700">Đánh giá</button>
+                        <button onClick={()=>openReviewForm(sub)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Review</button>
+                        <button onClick={()=>openEvalForm(sub)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Đánh giá</button>
                       </>
                     )}
                     <button onClick={()=>openForm(sub)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Sửa</button>
                     {isAdmin() && (
-                      <button onClick={()=>handleDelete(sub.id)} className="rounded bg-red-600 text-white px-2 py-1 text-xs hover:bg-red-700">Xóa</button>
+                      <button onClick={()=>handleDelete(sub.id)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Xóa</button>
                     )}
                   </div>
                 </div>
@@ -244,7 +244,7 @@ export default function Submissions(){
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Dự án *</label>
-                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.project_id} onChange={e=>setFormData({...formData, project_id: e.target.value})} required>
+                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.project_id} onChange={e=>setFormData({...formData, project_id: e.target.value})} required>
                     <option value="">-- Chọn dự án --</option>
                     {projects.map(p => <option key={p.id} value={p.id}>{p.title || p.project_code}</option>)}
                   </select>
@@ -252,14 +252,14 @@ export default function Submissions(){
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Loại nộp</label>
-                    <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.submission_type} onChange={e=>setFormData({...formData, submission_type: e.target.value})}>
+                    <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.submission_type} onChange={e=>setFormData({...formData, submission_type: e.target.value})}>
                       <option value="team">Team</option>
                       <option value="individual">Individual</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Danh mục</label>
-                    <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.submission_category} onChange={e=>setFormData({...formData, submission_category: e.target.value})}>
+                    <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.submission_category} onChange={e=>setFormData({...formData, submission_category: e.target.value})}>
                       <option value="proposal">Proposal</option>
                       <option value="progress_report">Progress Report</option>
                       <option value="final_report">Final Report</option>
@@ -271,29 +271,29 @@ export default function Submissions(){
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Tiêu đề *</label>
-                  <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.title} onChange={e=>setFormData({...formData, title: e.target.value})} required />
+                  <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.title} onChange={e=>setFormData({...formData, title: e.target.value})} required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Mô tả</label>
-                  <textarea rows="3" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.description} onChange={e=>setFormData({...formData, description: e.target.value})}></textarea>
+                  <textarea rows="3" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.description} onChange={e=>setFormData({...formData, description: e.target.value})}></textarea>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Đường dẫn file</label>
-                  <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.file_path} onChange={e=>setFormData({...formData, file_path: e.target.value})} placeholder="/uploads/..." />
+                  <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.file_path} onChange={e=>setFormData({...formData, file_path: e.target.value})} placeholder="/uploads/..." />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Loại file</label>
-                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.file_type} onChange={e=>setFormData({...formData, file_type: e.target.value})} placeholder="pdf, docx..." />
+                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.file_type} onChange={e=>setFormData({...formData, file_type: e.target.value})} placeholder="pdf, docx..." />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Kích thước file (bytes)</label>
-                    <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.file_size} onChange={e=>setFormData({...formData, file_size: e.target.value})} />
+                    <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.file_size} onChange={e=>setFormData({...formData, file_size: e.target.value})} />
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={closeForm} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Hủy</button>
-                  <button type="submit" className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">Lưu</button>
+                  <button type="submit" className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">Lưu</button>
                 </div>
               </form>
             </div>
@@ -310,7 +310,7 @@ export default function Submissions(){
               <form onSubmit={handleReview} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Trạng thái</label>
-                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={reviewData.status} onChange={e=>setReviewData({...reviewData, status: e.target.value})}>
+                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={reviewData.status} onChange={e=>setReviewData({...reviewData, status: e.target.value})}>
                     <option value="approved">Approved</option>
                     <option value="rejected">Rejected</option>
                     <option value="revision_required">Revision Required</option>
@@ -318,11 +318,11 @@ export default function Submissions(){
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Nhận xét</label>
-                  <textarea rows="4" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={reviewData.feedback} onChange={e=>setReviewData({...reviewData, feedback: e.target.value})}></textarea>
+                  <textarea rows="4" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={reviewData.feedback} onChange={e=>setReviewData({...reviewData, feedback: e.target.value})}></textarea>
                 </div>
                 <div className="flex justify-end gap-2">
                   <button type="button" onClick={closeReviewForm} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Hủy</button>
-                  <button type="submit" className="rounded-lg bg-amber-600 text-white px-4 py-2 text-sm font-medium hover:bg-amber-700">Lưu</button>
+                  <button type="submit" className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">Lưu</button>
                 </div>
               </form>
             </div>
@@ -340,36 +340,36 @@ export default function Submissions(){
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Technical Quality (1-10)</label>
-                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={evalData.technical_quality} onChange={e=>setEvalData({...evalData, technical_quality: e.target.value})} />
+                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={evalData.technical_quality} onChange={e=>setEvalData({...evalData, technical_quality: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Creativity (1-10)</label>
-                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={evalData.creativity} onChange={e=>setEvalData({...evalData, creativity: e.target.value})} />
+                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={evalData.creativity} onChange={e=>setEvalData({...evalData, creativity: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Presentation (1-10)</label>
-                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={evalData.presentation} onChange={e=>setEvalData({...evalData, presentation: e.target.value})} />
+                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={evalData.presentation} onChange={e=>setEvalData({...evalData, presentation: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Teamwork (1-10)</label>
-                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={evalData.teamwork} onChange={e=>setEvalData({...evalData, teamwork: e.target.value})} />
+                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={evalData.teamwork} onChange={e=>setEvalData({...evalData, teamwork: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Timeliness (1-10)</label>
-                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={evalData.timeliness} onChange={e=>setEvalData({...evalData, timeliness: e.target.value})} />
+                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={evalData.timeliness} onChange={e=>setEvalData({...evalData, timeliness: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Documentation (1-10)</label>
-                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={evalData.documentation} onChange={e=>setEvalData({...evalData, documentation: e.target.value})} />
+                    <input type="number" min="1" max="10" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={evalData.documentation} onChange={e=>setEvalData({...evalData, documentation: e.target.value})} />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Nhận xét</label>
-                  <textarea rows="4" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={evalData.comments} onChange={e=>setEvalData({...evalData, comments: e.target.value})}></textarea>
+                  <textarea rows="4" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={evalData.comments} onChange={e=>setEvalData({...evalData, comments: e.target.value})}></textarea>
                 </div>
                 <div className="flex justify-end gap-2">
                   <button type="button" onClick={closeEvalForm} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Hủy</button>
-                  <button type="submit" className="rounded-lg bg-purple-600 text-white px-4 py-2 text-sm font-medium hover:bg-purple-700">Lưu</button>
+                  <button type="submit" className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">Lưu</button>
                 </div>
               </form>
             </div>

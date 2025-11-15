@@ -82,14 +82,14 @@ export default function Profile(){
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Username</label>
-                <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.username} onChange={e=>setFormData({...formData, username: e.target.value})} />
+                <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.username} onChange={e=>setFormData({...formData, username: e.target.value})} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Email</label>
-                <input type="email" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={formData.email} onChange={e=>setFormData({...formData, email: e.target.value})} />
+                <input type="email" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.email} onChange={e=>setFormData({...formData, email: e.target.value})} />
               </div>
               <div className="flex gap-2">
-                <button type="submit" className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">Lưu</button>
+                <button type="submit" className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">Lưu</button>
                 <button type="button" onClick={()=>setEditMode(false)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Hủy</button>
               </div>
             </form>
@@ -97,8 +97,8 @@ export default function Profile(){
             <div className="space-y-2">
               <p><span className="font-medium">Username:</span> {profile.username}</p>
               <p><span className="font-medium">Email:</span> {profile.email}</p>
-              <p><span className="font-medium">Role:</span> <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">{profile.role}</span></p>
-              <p><span className="font-medium">Trạng thái:</span> <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${profile.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{profile.is_active ? 'Active' : 'Inactive'}</span></p>
+              <p><span className="font-medium">Role:</span> <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">{profile.role}</span></p>
+              <p><span className="font-medium">Trạng thái:</span> <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${profile.is_active ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>{profile.is_active ? 'Active' : 'Inactive'}</span></p>
             </div>
           )}
         </div>
@@ -109,7 +109,7 @@ export default function Profile(){
           <div className="flex items-center justify-between mb-4">
             <h5 className="font-semibold">Bảo mật</h5>
             {!showPasswordForm && (
-              <button onClick={()=>setShowPasswordForm(true)} className="rounded bg-amber-600 text-white px-3 py-1 text-sm hover:bg-amber-700">Đổi mật khẩu</button>
+              <button onClick={()=>setShowPasswordForm(true)} className="rounded bg-blue-600 text-white px-3 py-1 text-sm hover:bg-blue-700">Đổi mật khẩu</button>
             )}
           </div>
 
@@ -117,18 +117,18 @@ export default function Profile(){
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Mật khẩu hiện tại</label>
-                <input type="password" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={passwordData.currentPassword} onChange={e=>setPasswordData({...passwordData, currentPassword: e.target.value})} required />
+                <input type="password" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={passwordData.currentPassword} onChange={e=>setPasswordData({...passwordData, currentPassword: e.target.value})} required />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Mật khẩu mới</label>
-                <input type="password" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={passwordData.newPassword} onChange={e=>setPasswordData({...passwordData, newPassword: e.target.value})} required />
+                <input type="password" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={passwordData.newPassword} onChange={e=>setPasswordData({...passwordData, newPassword: e.target.value})} required />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Xác nhận mật khẩu mới</label>
-                <input type="password" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={passwordData.confirmPassword} onChange={e=>setPasswordData({...passwordData, confirmPassword: e.target.value})} required />
+                <input type="password" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={passwordData.confirmPassword} onChange={e=>setPasswordData({...passwordData, confirmPassword: e.target.value})} required />
               </div>
               <div className="flex gap-2">
-                <button type="submit" className="rounded-lg bg-amber-600 text-white px-4 py-2 text-sm font-medium hover:bg-amber-700">Đổi mật khẩu</button>
+                <button type="submit" className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">Đổi mật khẩu</button>
                 <button type="button" onClick={()=>{setShowPasswordForm(false); setPasswordData({currentPassword:'',newPassword:'',confirmPassword:''})}} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Hủy</button>
               </div>
             </form>
