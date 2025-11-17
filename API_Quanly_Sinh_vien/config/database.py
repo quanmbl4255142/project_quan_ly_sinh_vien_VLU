@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
+    #SECRET_KEY dùng để mã hóa các dữ liệu trong database, giải thích dễ hiểu thực tế thì tạo ra 1 chuối vd: quan123 sẽ thành 1 mã hóa phức tạp hơn như là quan1234567890
+    # os.environ là 1 biến môi trường, nó là 1 biến mà hệ thống sẽ tự động đọc từ file .env
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     
     # Get DATABASE_URL from environment (Railway automatically provides this)
