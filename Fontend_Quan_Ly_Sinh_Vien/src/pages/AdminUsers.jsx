@@ -71,20 +71,25 @@ export default function AdminUsers(){
     )
   }
 
+  // Get user role once
+  const userRole = user?.role
+  const isUserAdmin = userRole === 'admin'
+  
   // Redirect if not admin (after checking)
-  if (!checkingAuth && !isAdmin()) {
-    console.log('[AdminUsers] Not admin, redirecting to dashboard. User:', user)
+  if (!checkingAuth && !isUserAdmin) {
+    console.log('[AdminUsers] Not admin, redirecting to dashboard. User:', user, 'Role:', userRole)
     return <Navigate to="/dashboard" replace />
   }
 
   useEffect(()=>{
     // Only fetch if authorized
-    if (!checkingAuth && isAdmin()) {
+    if (!checkingAuth && isUserAdmin) {
+      console.log('[AdminUsers] checkingAuth:', checkingAuth, 'userRole:', userRole, 'isUserAdmin:', isUserAdmin)
       console.log('[AdminUsers] Starting to fetch users and stats')
       fetchUsers()
       fetchStats()
     }
-  }, [checkingAuth, isAdmin])
+  }, [checkingAuth, isUserAdmin, userRole])
 
   useEffect(() => {
     if (users.length > 0 || searchTerm || roleFilter !== 'all' || statusFilter !== 'all') {
@@ -188,7 +193,7 @@ export default function AdminUsers(){
   }
 
   // Debug log
-  console.log('[AdminUsers] Render - checkingAuth:', checkingAuth, 'isAdmin:', isAdmin(), 'user:', user)
+  console.log('[AdminUsers] Render - checkingAuth:', checkingAuth, 'isUserAdmin:', isUserAdmin, 'user:', user, 'userRole:', userRole)
 
   // Error boundary fallback
   if (renderError) {
@@ -211,6 +216,11 @@ export default function AdminUsers(){
     )
   }
 
+  // Don't render if not admin (will redirect)
+  if (!checkingAuth && !isUserAdmin) {
+    return null
+  }
+
   return (
     <div className="min-h-screen">
       {/* Header - Always visible */}
@@ -224,7 +234,7 @@ export default function AdminUsers(){
         </div>
         {user && (
           <div className="text-sm text-gray-500">
-            Đang đăng nhập: <span className="font-medium">{user.username}</span> ({user.role})
+            Đang đăng nhập: <span className="font-medium">{user.username}</span> ({user.role || 'N/A'})
           </div>
         )}
       </div>
@@ -235,18 +245,31 @@ export default function AdminUsers(){
           <span className="text-xl">⚠️</span>
           <div className="flex-1">
             <div className="font-medium mb-1">Lỗi tải dữ liệu</div>
-            <div>{error}</div>
+            <div className="mb-2">{error}</div>
+            <div className="text-xs text-red-600 mb-2">
+              Debug: checkingAuth={String(checkingAuth)}, isUserAdmin={String(isUserAdmin)}, userRole={userRole || 'null'}, loading={String(loading)}
+            </div>
             <button 
               onClick={() => {
                 setError('')
+                setLoading(true)
                 fetchUsers()
                 fetchStats()
               }}
-              className="mt-2 text-sm underline hover:no-underline"
+              className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
             >
-              Thử lại
+              🔄 Thử lại
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Debug info in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mb-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
+          <strong>Debug Info:</strong> checkingAuth={String(checkingAuth)}, isUserAdmin={String(isUserAdmin)}, 
+          userRole={userRole || 'null'}, loading={String(loading)}, usersCount={users.length}, 
+          filteredCount={filteredUsers.length}, error={error || 'none'}
         </div>
       )}
 
