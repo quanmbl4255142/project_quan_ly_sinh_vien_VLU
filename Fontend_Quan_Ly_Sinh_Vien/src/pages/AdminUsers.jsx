@@ -18,26 +18,31 @@ export default function AdminUsers(){
 
   // Check auth after user is loaded
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser)
+    const checkAuth = () => {
+      const token = localStorage.getItem('token')
+      const storedUser = localStorage.getItem('user')
+      
+      if (!token) {
         setCheckingAuth(false)
-        if (parsedUser?.role !== 'admin') {
-          // Will redirect via Navigate below
+        return
+      }
+      
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser)
+          console.log('[AdminUsers] User role:', parsedUser?.role)
+          setCheckingAuth(false)
+        } catch (e) {
+          console.error('[AdminUsers] Error parsing user:', e)
+          setCheckingAuth(false)
         }
-      } catch (e) {
+      } else {
         setCheckingAuth(false)
       }
-    } else {
-      setCheckingAuth(false)
     }
+    
+    checkAuth()
   }, [])
-
-  // Redirect if not admin (after checking)
-  if (!checkingAuth && !isAdmin()) {
-    return <Navigate to="/dashboard" replace />
-  }
 
   // Show loading while checking auth
   if (checkingAuth) {
@@ -49,13 +54,23 @@ export default function AdminUsers(){
     )
   }
 
+  // Redirect if not admin (after checking)
+  if (!checkingAuth && !isAdmin()) {
+    console.log('[AdminUsers] Not admin, redirecting to dashboard')
+    return <Navigate to="/dashboard" replace />
+  }
+
   useEffect(()=>{
     fetchUsers()
     fetchStats()
   },[])
 
   useEffect(() => {
-    filterUsers()
+    if (users.length > 0 || searchTerm || roleFilter !== 'all' || statusFilter !== 'all') {
+      filterUsers()
+    } else {
+      setFilteredUsers([])
+    }
   }, [users, searchTerm, roleFilter, statusFilter])
 
   async function fetchUsers(){
@@ -64,9 +79,16 @@ export default function AdminUsers(){
     setSuccess('')
     try{
       const res = await getAllUsers()
+      console.log('[AdminUsers] fetchUsers response:', res)
       setUsers(res.users || [])
+      // Initialize filteredUsers with all users
+      setFilteredUsers(res.users || [])
     }catch(err){
-      setError(err?.data?.error || 'Không thể tải danh sách users')
+      console.error('[AdminUsers] fetchUsers error:', err)
+      const errorMsg = err?.data?.error || err?.message || 'Không thể tải danh sách users'
+      setError(errorMsg)
+      setUsers([])
+      setFilteredUsers([])
     }finally{
       setLoading(false)
     }
@@ -144,8 +166,11 @@ export default function AdminUsers(){
     }
   }
 
+  // Debug log
+  console.log('[AdminUsers] Render - checkingAuth:', checkingAuth, 'isAdmin:', isAdmin(), 'user:', user)
+
   return (
-    <div>
+    <div className="min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -253,20 +278,23 @@ export default function AdminUsers(){
       {loading ? (
         <div className="flex items-center justify-center gap-3 py-12">
           <span className="text-4xl animate-spin">⏳</span>
-          <span className="text-lg text-gray-600">Đang tải...</span>
+          <span className="text-lg text-gray-600">Đang tải danh sách users...</span>
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredUsers.length === 0 ? (
+          {filteredUsers.length === 0 && !error ? (
             <div className="card">
               <div className="card-body text-center py-12">
                 <span className="text-6xl mb-4 inline-block">📭</span>
-                <p className="text-gray-500">
-                  {users.length === 0 ? 'Không có users' : 'Không tìm thấy users phù hợp'}
+                <p className="text-gray-500 text-lg mb-2">
+                  {users.length === 0 ? 'Không có users trong hệ thống' : 'Không tìm thấy users phù hợp với bộ lọc'}
                 </p>
+                {users.length === 0 && (
+                  <p className="text-sm text-gray-400">Hãy đăng ký user mới để bắt đầu</p>
+                )}
               </div>
             </div>
-          ) : (
+          ) : filteredUsers.length > 0 ? (
             filteredUsers.map(u => (
               <div key={u.id} className="card group hover:shadow-2xl transition-all duration-300">
                 <div className="card-body">
