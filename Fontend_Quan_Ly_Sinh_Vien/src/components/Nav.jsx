@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 export default function NavBar(){
   const token = localStorage.getItem('token')
   const user = JSON.parse(localStorage.getItem('user') || 'null')
   const navigate = useNavigate()
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false)
 
   const handleLogout = () =>{
     localStorage.removeItem('token')
@@ -29,10 +30,34 @@ export default function NavBar(){
                 <Link to="/teams" className="hover:text-white font-medium hover:scale-105 transition-all">👥 Teams</Link>
                 <Link to="/submissions" className="hover:text-white font-medium hover:scale-105 transition-all">📝 Submissions</Link>
                 {user?.role === 'admin' && (
-                  <>
-                    <Link to="/admin/users" className="hover:text-white font-medium hover:scale-105 transition-all bg-blue-500/20 px-3 py-1 rounded-lg">👑 Admin</Link>
-                    <Link to="/admin/monitor" className="hover:text-white font-medium hover:scale-105 transition-all bg-blue-500/20 px-3 py-1 rounded-lg">📈 Monitor</Link>
-                  </>
+                  <div 
+                    className="relative"
+                    onMouseEnter={() => setAdminMenuOpen(true)}
+                    onMouseLeave={() => setAdminMenuOpen(false)}
+                  >
+                    <button className="hover:text-white font-medium hover:scale-105 transition-all bg-blue-500/20 px-3 py-1 rounded-lg flex items-center gap-1">
+                      👑 Admin
+                      <span className="text-xs">▼</span>
+                    </button>
+                    {adminMenuOpen && (
+                      <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                        <Link 
+                          to="/admin/users" 
+                          className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                          onClick={() => setAdminMenuOpen(false)}
+                        >
+                          👥 Quản lý Users
+                        </Link>
+                        <Link 
+                          to="/admin/monitor" 
+                          className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                          onClick={() => setAdminMenuOpen(false)}
+                        >
+                          📈 System Monitor
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 )}
               </>
             )}
@@ -65,8 +90,8 @@ export default function NavBar(){
             <Link to="/submissions" className="hover:text-white/90">Submissions</Link>
             {user?.role === 'admin' && (
               <>
-                <Link to="/admin/users" className="hover:text-white/90">Admin</Link>
-                <Link to="/admin/monitor" className="hover:text-white/90">Monitor</Link>
+                <Link to="/admin/users" className="hover:text-white/90">👥 Quản lý Users</Link>
+                <Link to="/admin/monitor" className="hover:text-white/90">📈 Monitor</Link>
               </>
             )}
           </nav>

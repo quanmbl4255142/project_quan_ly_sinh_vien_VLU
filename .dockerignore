@@ -1,0 +1,49 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Docker files
+docker-compose.yml
+.dockerignore
+
+# Railway config
+railway.json
+RAILWAY_SETUP.md
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Báo cáo (không cần trong Docker)
+BAO_CAO_DU_AN.md
+
+# Test files
+test.html
+
