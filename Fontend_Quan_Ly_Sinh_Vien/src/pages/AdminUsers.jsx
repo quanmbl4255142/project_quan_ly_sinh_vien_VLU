@@ -15,33 +15,50 @@ export default function AdminUsers(){
   const [statusFilter, setStatusFilter] = useState('all')
   const [stats, setStats] = useState(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [renderError, setRenderError] = useState(null)
 
   // Check auth after user is loaded
   useEffect(() => {
     const checkAuth = () => {
-      const token = localStorage.getItem('token')
-      const storedUser = localStorage.getItem('user')
-      
-      if (!token) {
-        setCheckingAuth(false)
-        return
-      }
-      
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser)
-          console.log('[AdminUsers] User role:', parsedUser?.role)
+      try {
+        const token = localStorage.getItem('token')
+        const storedUser = localStorage.getItem('user')
+        
+        if (!token) {
           setCheckingAuth(false)
-        } catch (e) {
-          console.error('[AdminUsers] Error parsing user:', e)
+          return
+        }
+        
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser)
+            console.log('[AdminUsers] User role:', parsedUser?.role)
+            setCheckingAuth(false)
+          } catch (e) {
+            console.error('[AdminUsers] Error parsing user:', e)
+            setCheckingAuth(false)
+          }
+        } else {
           setCheckingAuth(false)
         }
-      } else {
+      } catch (err) {
+        console.error('[AdminUsers] Auth check error:', err)
         setCheckingAuth(false)
+        setRenderError('Lỗi kiểm tra quyền truy cập')
       }
     }
     
+    // Timeout để tránh stuck ở checkingAuth
+    let timeoutId = setTimeout(() => {
+      console.warn('[AdminUsers] Auth check timeout, forcing false')
+      setCheckingAuth(false)
+    }, 3000)
+    
     checkAuth()
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
   }, [])
 
   // Show loading while checking auth
@@ -56,14 +73,18 @@ export default function AdminUsers(){
 
   // Redirect if not admin (after checking)
   if (!checkingAuth && !isAdmin()) {
-    console.log('[AdminUsers] Not admin, redirecting to dashboard')
+    console.log('[AdminUsers] Not admin, redirecting to dashboard. User:', user)
     return <Navigate to="/dashboard" replace />
   }
 
   useEffect(()=>{
-    fetchUsers()
-    fetchStats()
-  },[])
+    // Only fetch if authorized
+    if (!checkingAuth && isAdmin()) {
+      console.log('[AdminUsers] Starting to fetch users and stats')
+      fetchUsers()
+      fetchStats()
+    }
+  }, [checkingAuth, isAdmin])
 
   useEffect(() => {
     if (users.length > 0 || searchTerm || roleFilter !== 'all' || statusFilter !== 'all') {
@@ -169,9 +190,30 @@ export default function AdminUsers(){
   // Debug log
   console.log('[AdminUsers] Render - checkingAuth:', checkingAuth, 'isAdmin:', isAdmin(), 'user:', user)
 
+  // Error boundary fallback
+  if (renderError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="card max-w-md">
+          <div className="card-body text-center">
+            <span className="text-6xl mb-4 inline-block">⚠️</span>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Lỗi</h3>
+            <p className="text-gray-600 mb-4">{renderError}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Tải lại trang
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen">
-      {/* Header */}
+      {/* Header - Always visible */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <span className="text-4xl">👥</span>
@@ -180,7 +222,33 @@ export default function AdminUsers(){
             <p className="text-sm text-gray-500">Quản lý tất cả người dùng trong hệ thống</p>
           </div>
         </div>
+        {user && (
+          <div className="text-sm text-gray-500">
+            Đang đăng nhập: <span className="font-medium">{user.username}</span> ({user.role})
+          </div>
+        )}
       </div>
+
+      {/* Always show error if exists */}
+      {error && (
+        <div className="mb-4 rounded-md bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm flex items-start gap-2">
+          <span className="text-xl">⚠️</span>
+          <div className="flex-1">
+            <div className="font-medium mb-1">Lỗi tải dữ liệu</div>
+            <div>{error}</div>
+            <button 
+              onClick={() => {
+                setError('')
+                fetchUsers()
+                fetchStats()
+              }}
+              className="mt-2 text-sm underline hover:no-underline"
+            >
+              Thử lại
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Statistics Cards */}
       {stats && (
@@ -271,14 +339,20 @@ export default function AdminUsers(){
         </div>
       </div>
 
-      {/* Messages */}
-      {error && <div className="mb-3 rounded-md bg-red-50 text-red-700 px-3 py-2 text-sm flex items-center gap-2"><span>⚠️</span>{error}</div>}
+      {/* Success Messages */}
       {success && <div className="mb-3 rounded-md bg-green-50 text-green-700 px-3 py-2 text-sm flex items-center gap-2"><span>✅</span>{success}</div>}
 
-      {loading ? (
-        <div className="flex items-center justify-center gap-3 py-12">
-          <span className="text-4xl animate-spin">⏳</span>
-          <span className="text-lg text-gray-600">Đang tải danh sách users...</span>
+      {loading && !error ? (
+        <div className="card">
+          <div className="card-body">
+            <div className="flex items-center justify-center gap-3 py-12">
+              <span className="text-4xl animate-spin">⏳</span>
+              <div>
+                <div className="text-lg font-medium text-gray-700">Đang tải danh sách users...</div>
+                <div className="text-sm text-gray-500 mt-1">Vui lòng đợi trong giây lát</div>
+              </div>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
