@@ -21,31 +21,53 @@ function PrivateRoute({ children }){
 function AdminRoute({ children }){
   const token = localStorage.getItem('token')
   const [isAuthorized, setIsAuthorized] = useState(null)
+  const [checked, setChecked] = useState(false)
   
   useEffect(() => {
-    if (!token) {
-      setIsAuthorized(false)
-      return
+    const checkAuth = () => {
+      if (!token) {
+        console.log('[AdminRoute] No token')
+        setIsAuthorized(false)
+        setChecked(true)
+        return
+      }
+      
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || 'null')
+        const isAdmin = user?.role === 'admin'
+        console.log('[AdminRoute] User:', user, 'isAdmin:', isAdmin)
+        setIsAuthorized(isAdmin)
+      } catch (e) {
+        console.error('[AdminRoute] Error:', e)
+        setIsAuthorized(false)
+      } finally {
+        setChecked(true)
+      }
     }
     
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || 'null')
-      setIsAuthorized(user?.role === 'admin')
-    } catch (e) {
-      setIsAuthorized(false)
-    }
+    // Small delay to ensure localStorage is ready
+    const timer = setTimeout(checkAuth, 50)
+    return () => clearTimeout(timer)
   }, [token])
   
-  if (isAuthorized === null) {
+  if (!checked || isAuthorized === null) {
     return (
-      <div className="flex items-center justify-center gap-3 py-12">
-        <span className="text-4xl animate-spin">⏳</span>
-        <span className="text-lg text-gray-600">Đang kiểm tra quyền...</span>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <span className="text-4xl animate-spin block mb-4">⏳</span>
+          <span className="text-lg text-gray-600">Đang kiểm tra quyền...</span>
+        </div>
       </div>
     )
   }
   
-  return isAuthorized ? children : <Navigate to="/dashboard" replace />
+  if (!isAuthorized) {
+    console.log('[AdminRoute] Not authorized, redirecting to dashboard')
+    return <Navigate to="/dashboard" replace />
+  }
+  
+  console.log('[AdminRoute] Authorized, rendering children')
+  return children
 }
 
 export default function App(){

@@ -14,103 +14,93 @@ export default function AdminUsers(){
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [stats, setStats] = useState(null)
-  const [checkingAuth, setCheckingAuth] = useState(true)
-  const [renderError, setRenderError] = useState(null)
+  const [mounted, setMounted] = useState(false)
 
-  // Check auth after user is loaded
+  // Force component to mount
   useEffect(() => {
-    const checkAuth = () => {
-      try {
-        const token = localStorage.getItem('token')
-        const storedUser = localStorage.getItem('user')
-        
-        if (!token) {
-          setCheckingAuth(false)
-          return
-        }
-        
-        if (storedUser) {
-          try {
-            const parsedUser = JSON.parse(storedUser)
-            console.log('[AdminUsers] User role:', parsedUser?.role)
-            setCheckingAuth(false)
-          } catch (e) {
-            console.error('[AdminUsers] Error parsing user:', e)
-            setCheckingAuth(false)
-          }
-        } else {
-          setCheckingAuth(false)
-        }
-      } catch (err) {
-        console.error('[AdminUsers] Auth check error:', err)
-        setCheckingAuth(false)
-        setRenderError('Lỗi kiểm tra quyền truy cập')
-      }
-    }
-    
-    // Timeout để tránh stuck ở checkingAuth
-    let timeoutId = setTimeout(() => {
-      console.warn('[AdminUsers] Auth check timeout, forcing false')
-      setCheckingAuth(false)
-    }, 3000)
-    
-    checkAuth()
-    
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId)
-    }
+    console.log('[AdminUsers] Component mounting...')
+    setMounted(true)
+    console.log('[AdminUsers] Component mounted')
   }, [])
 
-  // Show loading while checking auth
-  if (checkingAuth) {
+  // Check if user is admin - get from localStorage directly for reliability
+  const storedUser = React.useMemo(() => {
+    try {
+      const userStr = localStorage.getItem('user')
+      return userStr ? JSON.parse(userStr) : null
+    } catch (e) {
+      return null
+    }
+  }, [user])
+
+  const userRole = storedUser?.role || user?.role
+  const isUserAdmin = userRole === 'admin'
+
+  console.log('[AdminUsers] Render - mounted:', mounted, 'user:', user, 'storedUser:', storedUser, 'userRole:', userRole, 'isUserAdmin:', isUserAdmin)
+
+  // Show loading while mounting
+  if (!mounted) {
     return (
-      <div className="flex items-center justify-center gap-3 py-12">
-        <span className="text-4xl animate-spin">⏳</span>
-        <span className="text-lg text-gray-600">Đang kiểm tra quyền...</span>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <span className="text-4xl animate-spin block mb-4">⏳</span>
+          <span className="text-lg text-gray-600">Đang tải...</span>
+        </div>
       </div>
     )
   }
 
-  // Get user role once
-  const userRole = user?.role
-  const isUserAdmin = userRole === 'admin'
-  
-  // Redirect if not admin (after checking)
-  if (!checkingAuth && !isUserAdmin) {
-    console.log('[AdminUsers] Not admin, redirecting to dashboard. User:', user, 'Role:', userRole)
+  // Redirect if not admin
+  if (!isUserAdmin) {
+    console.log('[AdminUsers] Not admin, redirecting. User:', user, 'storedUser:', storedUser, 'Role:', userRole)
     return <Navigate to="/dashboard" replace />
   }
 
-  useEffect(()=>{
-    // Only fetch if authorized
-    if (!checkingAuth && isUserAdmin) {
-      console.log('[AdminUsers] checkingAuth:', checkingAuth, 'userRole:', userRole, 'isUserAdmin:', isUserAdmin)
-      console.log('[AdminUsers] Starting to fetch users and stats')
+  // Fetch users and stats
+  useEffect(() => {
+    if (mounted && isUserAdmin) {
+      console.log('[AdminUsers] Fetching data...')
       fetchUsers()
       fetchStats()
     }
-  }, [checkingAuth, isUserAdmin, userRole])
+  }, [mounted, isUserAdmin])
 
+  // Filter users
   useEffect(() => {
-    if (users.length > 0 || searchTerm || roleFilter !== 'all' || statusFilter !== 'all') {
-      filterUsers()
-    } else {
-      setFilteredUsers([])
+    let filtered = [...users]
+
+    if(searchTerm){
+      filtered = filtered.filter(u => 
+        u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
     }
+
+    if(roleFilter !== 'all'){
+      filtered = filtered.filter(u => u.role === roleFilter)
+    }
+
+    if(statusFilter !== 'all'){
+      filtered = filtered.filter(u => 
+        statusFilter === 'active' ? u.is_active : !u.is_active
+      )
+    }
+
+    setFilteredUsers(filtered)
   }, [users, searchTerm, roleFilter, statusFilter])
 
   async function fetchUsers(){
     setLoading(true)
     setError('')
-    setSuccess('')
     try{
+      console.log('[AdminUsers] Calling getAllUsers...')
       const res = await getAllUsers()
-      console.log('[AdminUsers] fetchUsers response:', res)
-      setUsers(res.users || [])
-      // Initialize filteredUsers with all users
-      setFilteredUsers(res.users || [])
+      console.log('[AdminUsers] Response:', res)
+      const usersList = res.users || res || []
+      setUsers(usersList)
+      setFilteredUsers(usersList)
     }catch(err){
-      console.error('[AdminUsers] fetchUsers error:', err)
+      console.error('[AdminUsers] Error:', err)
       const errorMsg = err?.data?.error || err?.message || 'Không thể tải danh sách users'
       setError(errorMsg)
       setUsers([])
@@ -125,34 +115,8 @@ export default function AdminUsers(){
       const res = await getAdminStatistics()
       setStats(res.users || null)
     }catch(err){
-      // Ignore stats error
+      console.error('[AdminUsers] Stats error:', err)
     }
-  }
-
-  function filterUsers(){
-    let filtered = [...users]
-
-    // Search filter
-    if(searchTerm){
-      filtered = filtered.filter(u => 
-        u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
-
-    // Role filter
-    if(roleFilter !== 'all'){
-      filtered = filtered.filter(u => u.role === roleFilter)
-    }
-
-    // Status filter
-    if(statusFilter !== 'all'){
-      filtered = filtered.filter(u => 
-        statusFilter === 'active' ? u.is_active : !u.is_active
-      )
-    }
-
-    setFilteredUsers(filtered)
   }
 
   async function handleToggleActive(userId){
@@ -192,196 +156,150 @@ export default function AdminUsers(){
     }
   }
 
-  // Debug log
-  console.log('[AdminUsers] Render - checkingAuth:', checkingAuth, 'isUserAdmin:', isUserAdmin, 'user:', user, 'userRole:', userRole)
-
-  // Error boundary fallback
-  if (renderError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="card max-w-md">
-          <div className="card-body text-center">
-            <span className="text-6xl mb-4 inline-block">⚠️</span>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Lỗi</h3>
-            <p className="text-gray-600 mb-4">{renderError}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Tải lại trang
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Don't render if not admin (will redirect)
-  if (!checkingAuth && !isUserAdmin) {
-    return null
-  }
+  console.log('[AdminUsers] Render - isUserAdmin:', isUserAdmin, 'user:', user, 'loading:', loading, 'users:', users.length)
 
   return (
-    <div className="min-h-screen">
-      {/* Header - Always visible */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <span className="text-4xl">👥</span>
-          <div>
-            <h4 className="text-2xl font-bold text-gray-800">Quản lý Người dùng</h4>
-            <p className="text-sm text-gray-500">Quản lý tất cả người dùng trong hệ thống</p>
+    <div className="min-h-screen bg-gray-50 p-4">
+      {/* Header */}
+      <div className="bg-white shadow-sm mb-6 p-4 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-4xl">👥</span>
+            <div>
+              <h4 className="text-2xl font-bold text-gray-800">Quản lý Người dùng</h4>
+              <p className="text-sm text-gray-500">Quản lý tất cả người dùng trong hệ thống</p>
+            </div>
           </div>
+          {user && (
+            <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded">
+              Đang đăng nhập: <span className="font-medium text-blue-600">{user.username}</span> 
+              <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                {user.role || 'N/A'}
+              </span>
+            </div>
+          )}
         </div>
-        {user && (
-          <div className="text-sm text-gray-500">
-            Đang đăng nhập: <span className="font-medium">{user.username}</span> ({user.role || 'N/A'})
-          </div>
-        )}
       </div>
 
-      {/* Always show error if exists */}
+      {/* Error Message */}
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm flex items-start gap-2">
-          <span className="text-xl">⚠️</span>
-          <div className="flex-1">
-            <div className="font-medium mb-1">Lỗi tải dữ liệu</div>
-            <div className="mb-2">{error}</div>
-            <div className="text-xs text-red-600 mb-2">
-              Debug: checkingAuth={String(checkingAuth)}, isUserAdmin={String(isUserAdmin)}, userRole={userRole || 'null'}, loading={String(loading)}
+        <div className="mb-4 rounded-md bg-red-50 border border-red-200 text-red-700 px-4 py-3">
+          <div className="flex items-start gap-2">
+            <span className="text-xl">⚠️</span>
+            <div className="flex-1">
+              <div className="font-medium mb-1">Lỗi tải dữ liệu</div>
+              <div className="mb-2">{error}</div>
+              <button 
+                onClick={() => {
+                  setError('')
+                  fetchUsers()
+                  fetchStats()
+                }}
+                className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+              >
+                🔄 Thử lại
+              </button>
             </div>
-            <button 
-              onClick={() => {
-                setError('')
-                setLoading(true)
-                fetchUsers()
-                fetchStats()
-              }}
-              className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-            >
-              🔄 Thử lại
-            </button>
           </div>
         </div>
       )}
 
-      {/* Debug info in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mb-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
-          <strong>Debug Info:</strong> checkingAuth={String(checkingAuth)}, isUserAdmin={String(isUserAdmin)}, 
-          userRole={userRole || 'null'}, loading={String(loading)}, usersCount={users.length}, 
-          filteredCount={filteredUsers.length}, error={error || 'none'}
+      {/* Success Message */}
+      {success && (
+        <div className="mb-3 rounded-md bg-green-50 text-green-700 px-3 py-2 text-sm flex items-center gap-2">
+          <span>✅</span>
+          <span>{success}</span>
         </div>
       )}
 
       {/* Statistics Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-            <div className="card-body">
-              <div className="text-sm opacity-90">Tổng số Users</div>
-              <div className="text-3xl font-bold mt-1">{stats.total || 0}</div>
-            </div>
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-4 shadow">
+            <div className="text-sm opacity-90">Tổng số Users</div>
+            <div className="text-3xl font-bold mt-1">{stats.total || 0}</div>
           </div>
-          <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
-            <div className="card-body">
-              <div className="text-sm opacity-90">Đang hoạt động</div>
-              <div className="text-3xl font-bold mt-1">{stats.active || 0}</div>
-            </div>
+          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-4 shadow">
+            <div className="text-sm opacity-90">Đang hoạt động</div>
+            <div className="text-3xl font-bold mt-1">{stats.active || 0}</div>
           </div>
-          <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-            <div className="card-body">
-              <div className="text-sm opacity-90">Admin</div>
-              <div className="text-3xl font-bold mt-1">{stats.admins || 0}</div>
-            </div>
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-4 shadow">
+            <div className="text-sm opacity-90">Admin</div>
+            <div className="text-3xl font-bold mt-1">{stats.admins || 0}</div>
           </div>
-          <div className="card bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-            <div className="card-body">
-              <div className="text-sm opacity-90">Giảng viên</div>
-              <div className="text-3xl font-bold mt-1">{stats.teachers || 0}</div>
-            </div>
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-lg p-4 shadow">
+            <div className="text-sm opacity-90">Giảng viên</div>
+            <div className="text-3xl font-bold mt-1">{stats.teachers || 0}</div>
           </div>
         </div>
       )}
 
       {/* Filters */}
-      <div className="card mb-6">
-        <div className="card-body">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                🔍 Tìm kiếm
-              </label>
-              <input
-                type="text"
-                placeholder="Tìm theo username hoặc email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-lg border-2 border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Role Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                👤 Lọc theo Role
-              </label>
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full rounded-lg border-2 border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Tất cả</option>
-                <option value="admin">Admin</option>
-                <option value="teacher">Teacher</option>
-                <option value="student">Student</option>
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                📊 Lọc theo Trạng thái
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-lg border-2 border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Tất cả</option>
-                <option value="active">Đang hoạt động</option>
-                <option value="inactive">Đã khóa</option>
-              </select>
-            </div>
+      <div className="bg-white rounded-lg shadow-sm mb-6 p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              🔍 Tìm kiếm
+            </label>
+            <input
+              type="text"
+              placeholder="Tìm theo username hoặc email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-lg border-2 border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
-
-          {/* Results count */}
-          <div className="mt-4 text-sm text-gray-600">
-            Hiển thị <span className="font-bold text-blue-600">{filteredUsers.length}</span> / {users.length} users
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              👤 Lọc theo Role
+            </label>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="w-full rounded-lg border-2 border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Tất cả</option>
+              <option value="admin">Admin</option>
+              <option value="teacher">Teacher</option>
+              <option value="student">Student</option>
+            </select>
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📊 Lọc theo Trạng thái
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full rounded-lg border-2 border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Tất cả</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="inactive">Đã khóa</option>
+            </select>
+          </div>
+        </div>
+        <div className="mt-4 text-sm text-gray-600">
+          Hiển thị <span className="font-bold text-blue-600">{filteredUsers.length}</span> / {users.length} users
         </div>
       </div>
 
-      {/* Success Messages */}
-      {success && <div className="mb-3 rounded-md bg-green-50 text-green-700 px-3 py-2 text-sm flex items-center gap-2"><span>✅</span>{success}</div>}
-
-      {loading && !error ? (
-        <div className="card">
-          <div className="card-body">
-            <div className="flex items-center justify-center gap-3 py-12">
-              <span className="text-4xl animate-spin">⏳</span>
-              <div>
-                <div className="text-lg font-medium text-gray-700">Đang tải danh sách users...</div>
-                <div className="text-sm text-gray-500 mt-1">Vui lòng đợi trong giây lát</div>
-              </div>
+      {/* Loading State */}
+      {loading ? (
+        <div className="bg-white rounded-lg shadow-sm p-8">
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-4xl animate-spin">⏳</span>
+            <div>
+              <div className="text-lg font-medium text-gray-700">Đang tải danh sách users...</div>
+              <div className="text-sm text-gray-500 mt-1">Vui lòng đợi trong giây lát</div>
             </div>
           </div>
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredUsers.length === 0 && !error ? (
-            <div className="card">
-              <div className="card-body text-center py-12">
+          {filteredUsers.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm p-12">
+              <div className="text-center">
                 <span className="text-6xl mb-4 inline-block">📭</span>
                 <p className="text-gray-500 text-lg mb-2">
                   {users.length === 0 ? 'Không có users trong hệ thống' : 'Không tìm thấy users phù hợp với bộ lọc'}
@@ -391,89 +309,83 @@ export default function AdminUsers(){
                 )}
               </div>
             </div>
-          ) : filteredUsers.length > 0 ? (
+          ) : (
             filteredUsers.map(u => (
-              <div key={u.id} className="card group hover:shadow-2xl transition-all duration-300">
-                <div className="card-body">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    {/* User Info */}
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold group-hover:scale-110 transition-transform
-                        ${u.role === 'admin' ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : 
-                          u.role === 'teacher' ? 'bg-gradient-to-br from-blue-400 to-blue-600' : 
-                          'bg-gradient-to-br from-green-400 to-green-600'}`}>
-                        {u.role === 'admin' ? '👑' : u.role === 'teacher' ? '👨‍🏫' : '👨‍🎓'}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-bold text-lg text-gray-800 flex items-center gap-2 flex-wrap">
-                          {u.username}
-                          {u.id === user?.id && (
-                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                              (Bạn)
-                            </span>
-                          )}
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium
-                            ${u.role === 'admin' ? 'bg-yellow-100 text-yellow-700' : 
-                              u.role === 'teacher' ? 'bg-blue-100 text-blue-700' : 
-                              'bg-green-100 text-green-700'}`}>
-                            {u.role === 'admin' ? 'Admin' : u.role === 'teacher' ? 'Teacher' : 'Student'}
-                          </span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium
-                            ${u.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {u.is_active ? '✅ Active' : '🚫 Inactive'}
-                          </span>
-                        </div>
-                        <div className="text-gray-600 text-sm mt-1">📧 {u.email}</div>
-                        {u.created_at && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Tạo lúc: {new Date(u.created_at).toLocaleString('vi-VN')}
-                          </div>
-                        )}
-                      </div>
+              <div key={u.id} className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold
+                      ${u.role === 'admin' ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : 
+                        u.role === 'teacher' ? 'bg-gradient-to-br from-blue-400 to-blue-600' : 
+                        'bg-gradient-to-br from-green-400 to-green-600'}`}>
+                      {u.role === 'admin' ? '👑' : u.role === 'teacher' ? '👨‍🏫' : '👨‍🎓'}
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                      <select 
-                        value={u.role} 
-                        onChange={(e)=>handleChangeRole(u.id, e.target.value)}
-                        className="rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                        disabled={u.id === user?.id}
-                        title={u.id === user?.id ? 'Không thể thay đổi role của chính mình' : 'Thay đổi role'}
-                      >
-                        <option value="admin">Admin</option>
-                        <option value="teacher">Teacher</option>
-                        <option value="student">Student</option>
-                      </select>
-                      <button 
-                        onClick={()=>handleToggleActive(u.id)} 
-                        className={`rounded-lg px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all whitespace-nowrap
-                          ${u.is_active 
-                            ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700' 
-                            : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'}`}
-                        disabled={u.id === user?.id}
-                        title={u.id === user?.id ? 'Không thể khóa tài khoản của chính mình' : u.is_active ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
-                      >
-                        {u.is_active ? '🚫 Khóa' : '✅ Mở khóa'}
-                      </button>
-                      {u.id !== user?.id && (
-                        <button 
-                          onClick={()=>handleDeleteUser(u.id)} 
-                          className="rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition-all hover:from-red-700 hover:to-red-800 whitespace-nowrap"
-                          title="Xóa người dùng"
-                        >
-                          🗑️ Xóa
-                        </button>
+                    <div className="flex-1">
+                      <div className="font-bold text-lg text-gray-800 flex items-center gap-2 flex-wrap">
+                        {u.username}
+                        {u.id === user?.id && (
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                            (Bạn)
+                          </span>
+                        )}
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium
+                          ${u.role === 'admin' ? 'bg-yellow-100 text-yellow-700' : 
+                            u.role === 'teacher' ? 'bg-blue-100 text-blue-700' : 
+                            'bg-green-100 text-green-700'}`}>
+                          {u.role === 'admin' ? 'Admin' : u.role === 'teacher' ? 'Teacher' : 'Student'}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium
+                          ${u.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {u.is_active ? '✅ Active' : '🚫 Inactive'}
+                        </span>
+                      </div>
+                      <div className="text-gray-600 text-sm mt-1">📧 {u.email}</div>
+                      {u.created_at && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Tạo lúc: {new Date(u.created_at).toLocaleString('vi-VN')}
+                        </div>
                       )}
                     </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <select 
+                      value={u.role} 
+                      onChange={(e)=>handleChangeRole(u.id, e.target.value)}
+                      className="rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      disabled={u.id === user?.id}
+                      title={u.id === user?.id ? 'Không thể thay đổi role của chính mình' : 'Thay đổi role'}
+                    >
+                      <option value="admin">Admin</option>
+                      <option value="teacher">Teacher</option>
+                      <option value="student">Student</option>
+                    </select>
+                    <button 
+                      onClick={()=>handleToggleActive(u.id)} 
+                      className={`rounded-lg px-4 py-2 text-sm font-medium hover:shadow-lg transition-all whitespace-nowrap
+                        ${u.is_active 
+                          ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700' 
+                          : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'}`}
+                      disabled={u.id === user?.id}
+                      title={u.id === user?.id ? 'Không thể khóa tài khoản của chính mình' : u.is_active ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
+                    >
+                      {u.is_active ? '🚫 Khóa' : '✅ Mở khóa'}
+                    </button>
+                    {u.id !== user?.id && (
+                      <button 
+                        onClick={()=>handleDeleteUser(u.id)} 
+                        className="rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 text-sm font-medium hover:shadow-lg transition-all hover:from-red-700 hover:to-red-800 whitespace-nowrap"
+                        title="Xóa người dùng"
+                      >
+                        🗑️ Xóa
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
             ))
-          ) : null}
+          )}
         </div>
       )}
     </div>
   )
 }
-
