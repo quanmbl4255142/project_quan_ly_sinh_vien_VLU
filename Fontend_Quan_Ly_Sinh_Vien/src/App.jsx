@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -20,8 +20,32 @@ function PrivateRoute({ children }){
 
 function AdminRoute({ children }){
   const token = localStorage.getItem('token')
-  const user = JSON.parse(localStorage.getItem('user') || 'null')
-  return token && user?.role === 'admin' ? children : <Navigate to="/dashboard" />
+  const [isAuthorized, setIsAuthorized] = useState(null)
+  
+  useEffect(() => {
+    if (!token) {
+      setIsAuthorized(false)
+      return
+    }
+    
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || 'null')
+      setIsAuthorized(user?.role === 'admin')
+    } catch (e) {
+      setIsAuthorized(false)
+    }
+  }, [token])
+  
+  if (isAuthorized === null) {
+    return (
+      <div className="flex items-center justify-center gap-3 py-12">
+        <span className="text-4xl animate-spin">⏳</span>
+        <span className="text-lg text-gray-600">Đang kiểm tra quyền...</span>
+      </div>
+    )
+  }
+  
+  return isAuthorized ? children : <Navigate to="/dashboard" replace />
 }
 
 export default function App(){

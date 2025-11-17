@@ -30,32 +30,43 @@ export default function NavBar(){
                 <Link to="/teams" className="hover:text-white font-medium hover:scale-105 transition-all">👥 Teams</Link>
                 <Link to="/submissions" className="hover:text-white font-medium hover:scale-105 transition-all">📝 Submissions</Link>
                 {user?.role === 'admin' && (
-                  <div 
-                    className="relative"
-                    onMouseEnter={() => setAdminMenuOpen(true)}
-                    onMouseLeave={() => setAdminMenuOpen(false)}
-                  >
-                    <button className="hover:text-white font-medium hover:scale-105 transition-all bg-blue-500/20 px-3 py-1 rounded-lg flex items-center gap-1">
+                  <div className="relative">
+                    <button 
+                      onClick={() => setAdminMenuOpen(!adminMenuOpen)}
+                      className="hover:text-white font-medium hover:scale-105 transition-all bg-blue-500/20 px-3 py-1 rounded-lg flex items-center gap-1"
+                    >
                       👑 Admin
-                      <span className="text-xs">▼</span>
+                      <span className={`text-xs transition-transform ${adminMenuOpen ? 'rotate-180' : ''}`}>▼</span>
                     </button>
                     {adminMenuOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                        <Link 
-                          to="/admin/users" 
-                          className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
                           onClick={() => setAdminMenuOpen(false)}
-                        >
-                          👥 Quản lý Users
-                        </Link>
-                        <Link 
-                          to="/admin/monitor" 
-                          className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                          onClick={() => setAdminMenuOpen(false)}
-                        >
-                          📈 System Monitor
-                        </Link>
-                      </div>
+                        ></div>
+                        <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                          <Link 
+                            to="/admin/users" 
+                            className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setAdminMenuOpen(false)
+                            }}
+                          >
+                            👥 Quản lý Users
+                          </Link>
+                          <Link 
+                            to="/admin/monitor" 
+                            className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setAdminMenuOpen(false)
+                            }}
+                          >
+                            📈 System Monitor
+                          </Link>
+                        </div>
+                      </>
                     )}
                   </div>
                 )}

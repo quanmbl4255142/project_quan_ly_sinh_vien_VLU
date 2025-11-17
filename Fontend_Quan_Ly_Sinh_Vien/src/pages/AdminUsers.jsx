@@ -14,10 +14,39 @@ export default function AdminUsers(){
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [stats, setStats] = useState(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
 
-  // Redirect if not admin
-  if (!isAdmin()) {
+  // Check auth after user is loaded
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser)
+        setCheckingAuth(false)
+        if (parsedUser?.role !== 'admin') {
+          // Will redirect via Navigate below
+        }
+      } catch (e) {
+        setCheckingAuth(false)
+      }
+    } else {
+      setCheckingAuth(false)
+    }
+  }, [])
+
+  // Redirect if not admin (after checking)
+  if (!checkingAuth && !isAdmin()) {
     return <Navigate to="/dashboard" replace />
+  }
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="flex items-center justify-center gap-3 py-12">
+        <span className="text-4xl animate-spin">⏳</span>
+        <span className="text-lg text-gray-600">Đang kiểm tra quyền...</span>
+      </div>
+    )
   }
 
   useEffect(()=>{
