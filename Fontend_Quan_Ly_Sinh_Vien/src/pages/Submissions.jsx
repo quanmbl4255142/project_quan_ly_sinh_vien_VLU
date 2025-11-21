@@ -24,6 +24,8 @@ export default function Submissions(){
     file_size: '',
     submission_category: 'proposal'
   })
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [fileName, setFileName] = useState('')
   const [reviewData, setReviewData] = useState({ status: 'approved', feedback: '' })
   const [evalData, setEvalData] = useState({
     technical_quality: 5,
@@ -75,6 +77,8 @@ export default function Submissions(){
         file_size: submission.file_size || '',
         submission_category: submission.submission_category || 'proposal'
       })
+      setSelectedFile(null)
+      setFileName(submission.file_path ? submission.file_path.split('/').pop() : '')
     }else{
       setEditingSubmission(null)
       setFormData({
@@ -87,6 +91,8 @@ export default function Submissions(){
         file_size: '',
         submission_category: 'proposal'
       })
+      setSelectedFile(null)
+      setFileName('')
     }
     setShowForm(true)
   }
@@ -94,6 +100,8 @@ export default function Submissions(){
   function closeForm(){
     setShowForm(false)
     setEditingSubmission(null)
+    setSelectedFile(null)
+    setFileName('')
   }
 
   function openReviewForm(submission){
@@ -130,15 +138,48 @@ export default function Submissions(){
     e.preventDefault()
     setError('')
     try{
-      if(editingSubmission){
-        await updateSubmission(editingSubmission.id, formData)
+      // Nếu có file được chọn, tạo FormData để upload file
+      if(selectedFile){
+        const formDataToSend = new FormData()
+        formDataToSend.append('project_id', formData.project_id)
+        formDataToSend.append('submission_type', formData.submission_type)
+        formDataToSend.append('title', formData.title)
+        formDataToSend.append('description', formData.description || '')
+        formDataToSend.append('submission_category', formData.submission_category)
+        formDataToSend.append('file', selectedFile)
+        
+        if(editingSubmission){
+          await updateSubmission(editingSubmission.id, formDataToSend)
+        }else{
+          await createSubmission(formDataToSend)
+        }
       }else{
-        await createSubmission(formData)
+        // Nếu không có file mới, gửi dữ liệu JSON như cũ
+        if(editingSubmission){
+          await updateSubmission(editingSubmission.id, formData)
+        }else{
+          await createSubmission(formData)
+        }
       }
       closeForm()
       fetchSubmissions()
     }catch(err){
       setError(err?.data?.error || 'Lưu bài nộp thất bại')
+    }
+  }
+
+  function handleFileChange(e){
+    const file = e.target.files[0]
+    if(file){
+      setSelectedFile(file)
+      setFileName(file.name)
+      // Tự động điền file_type và file_size
+      const ext = file.name.split('.').pop().toLowerCase()
+      setFormData({
+        ...formData,
+        file_type: ext,
+        file_size: file.size
+      })
     }
   }
 
@@ -278,17 +319,45 @@ export default function Submissions(){
                   <textarea rows="3" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.description} onChange={e=>setFormData({...formData, description: e.target.value})}></textarea>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Đường dẫn file</label>
-                  <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.file_path} onChange={e=>setFormData({...formData, file_path: e.target.value})} placeholder="/uploads/..." />
+                  <label className="block text-sm font-medium mb-1">File đính kèm *</label>
+                  <input 
+                    type="file" 
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx,.zip,.rar,.txt,.jpg,.png,.pptx,.xlsx"
+                  />
+                  {fileName && (
+                    <p className="mt-1 text-sm text-gray-600">
+                      Đã chọn: <span className="font-medium">{fileName}</span>
+                      {formData.file_size && ` (${(formData.file_size / 1024).toFixed(2)} KB)`}
+                    </p>
+                  )}
+                  {editingSubmission && editingSubmission.file_path && !selectedFile && (
+                    <p className="mt-1 text-sm text-gray-500">
+                      File hiện tại: {editingSubmission.file_path.split('/').pop()}
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Loại file</label>
-                    <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.file_type} onChange={e=>setFormData({...formData, file_type: e.target.value})} placeholder="pdf, docx..." />
+                    <input 
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      value={formData.file_type} 
+                      onChange={e=>setFormData({...formData, file_type: e.target.value})} 
+                      placeholder="pdf, docx..." 
+                      readOnly={!!selectedFile}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Kích thước file (bytes)</label>
-                    <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.file_size} onChange={e=>setFormData({...formData, file_size: e.target.value})} />
+                    <input 
+                      type="number" 
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      value={formData.file_size} 
+                      onChange={e=>setFormData({...formData, file_size: e.target.value})}
+                      readOnly={!!selectedFile}
+                    />
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">

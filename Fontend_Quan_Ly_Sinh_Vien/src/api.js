@@ -14,7 +14,13 @@ async function request(path, options = {}){
   if(token){
     headers['Authorization'] = `Bearer ${token}`
   }
-  headers['Content-Type'] = headers['Content-Type'] || 'application/json'
+  
+  // Nếu body là FormData, không set Content-Type (browser sẽ tự động set với boundary)
+  // Nếu không phải FormData, set Content-Type là application/json
+  const isFormData = options.body instanceof FormData
+  if(!isFormData){
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json'
+  }
 
   const url = `${API_BASE}${path}`
   // Debug: log the final request URL
@@ -136,7 +142,9 @@ export async function getProjectDocuments(id){
 }
 
 export async function uploadProjectDocument(id, data){
-  return request(`/projects/${id}/documents`, { method: 'POST', body: JSON.stringify(data) })
+  // Nếu data là FormData, gửi trực tiếp. Nếu không, stringify JSON
+  const body = data instanceof FormData ? data : JSON.stringify(data)
+  return request(`/projects/${id}/documents`, { method: 'POST', body })
 }
 
 // ===== Teams =====
@@ -184,11 +192,15 @@ export async function getSubmission(id){
 }
 
 export async function createSubmission(data){
-  return request('/submissions/submissions', { method: 'POST', body: JSON.stringify(data) })
+  // Nếu data là FormData, gửi trực tiếp. Nếu không, stringify JSON
+  const body = data instanceof FormData ? data : JSON.stringify(data)
+  return request('/submissions/submissions', { method: 'POST', body })
 }
 
 export async function updateSubmission(id, data){
-  return request(`/submissions/submissions/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+  // Nếu data là FormData, gửi trực tiếp. Nếu không, stringify JSON
+  const body = data instanceof FormData ? data : JSON.stringify(data)
+  return request(`/submissions/submissions/${id}`, { method: 'PUT', body })
 }
 
 export async function deleteSubmission(id){
