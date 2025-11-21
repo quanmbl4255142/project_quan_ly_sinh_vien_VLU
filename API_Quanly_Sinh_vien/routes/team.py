@@ -165,6 +165,7 @@ def create_team():
 
 @team_bp.route('/<int:team_id>', methods=['PUT'])
 @jwt_required()
+@teacher_or_admin_required
 def update_team(team_id):
     try:
         team = Team.query.get(team_id)
