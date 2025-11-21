@@ -1,7 +1,30 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { Navigate } from 'react-router-dom'
 import { getAllUsers, toggleUserActive, changeUserRole, deleteUser, getAdminStatistics } from '../api'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js'
+import { Line } from 'react-chartjs-2'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+)
 
 export default function AdminUsers(){
   const { user } = useAuth()
@@ -17,6 +40,13 @@ export default function AdminUsers(){
   const [systemMetrics, setSystemMetrics] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [checking, setChecking] = useState(true)
+  const [metricsHistory, setMetricsHistory] = useState({
+    cpu: [],
+    memory: [],
+    disk: [],
+    timestamps: []
+  })
+  const maxDataPoints = 30 // Lưu 30 điểm dữ liệu (khoảng 2.5 phút nếu fetch mỗi 5 giây)
 
   // Check admin status
   useEffect(() => {
@@ -83,13 +113,37 @@ export default function AdminUsers(){
       setStats(statsData)
       
       // Set system metrics if available
-      if (res.metrics && res.metrics.system) {
-        setSystemMetrics(res.metrics.system)
+      if (res.metrics && res.metrics.system && !res.metrics.system.error) {
+        const metrics = res.metrics.system
+        setSystemMetrics(metrics)
+        
+        // Add to history for charts
+        const now = new Date()
+        const timeLabel = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        
+        setMetricsHistory(prev => {
+          const newHistory = {
+            cpu: [...prev.cpu, metrics.cpu?.percent || 0],
+            memory: [...prev.memory, metrics.memory?.percent || 0],
+            disk: [...prev.disk, metrics.disk?.percent || 0],
+            timestamps: [...prev.timestamps, timeLabel]
+          }
+          
+          // Giới hạn số điểm dữ liệu
+          if (newHistory.cpu.length > maxDataPoints) {
+            newHistory.cpu.shift()
+            newHistory.memory.shift()
+            newHistory.disk.shift()
+            newHistory.timestamps.shift()
+          }
+          
+          return newHistory
+        })
       }
     }catch(err){
       console.error('[AdminUsers] Stats error:', err)
     }
-  }, [])
+  }, [maxDataPoints])
 
   // Fetch users and stats
   useEffect(() => {
@@ -97,6 +151,13 @@ export default function AdminUsers(){
       console.log('[AdminUsers] Fetching data...')
       fetchUsers()
       fetchStats()
+      
+      // Auto-refresh stats every 5 seconds for real-time charts
+      const interval = setInterval(() => {
+        fetchStats()
+      }, 5000)
+      
+      return () => clearInterval(interval)
     }
   }, [checking, isAdmin, fetchUsers, fetchStats])
 
@@ -264,50 +325,34 @@ export default function AdminUsers(){
             </div>
           </div>
 
-          {/* System Metrics */}
+          {/* System Metrics with Charts */}
           {systemMetrics && !systemMetrics.error && (
             <div className="bg-white rounded-lg shadow-sm mb-6 p-4">
               <h5 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <span>📊</span> Tổng quan hệ thống
               </h5>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              {/* Current Values Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 {/* CPU */}
                 {systemMetrics.cpu && (
-                  <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-blue-100">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-700">CPU Usage</span>
-                      <span className="text-sm font-bold text-gray-800">{systemMetrics.cpu.percent}%</span>
+                      <span className="text-lg font-bold text-blue-700">{systemMetrics.cpu.percent.toFixed(1)}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
-                      <div 
-                        className={`h-2.5 rounded-full ${
-                          systemMetrics.cpu.percent > 80 ? 'bg-red-500' : 
-                          systemMetrics.cpu.percent > 60 ? 'bg-yellow-500' : 'bg-green-500'
-                        }`}
-                        style={{ width: `${systemMetrics.cpu.percent}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-gray-500">Cores: {systemMetrics.cpu.cores}</div>
+                    <div className="text-xs text-gray-600">Cores: {systemMetrics.cpu.cores}</div>
                   </div>
                 )}
 
                 {/* Memory */}
                 {systemMetrics.memory && (
-                  <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-green-50 to-green-100">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-700">Memory</span>
-                      <span className="text-sm font-bold text-gray-800">{systemMetrics.memory.percent}%</span>
+                      <span className="text-lg font-bold text-green-700">{systemMetrics.memory.percent.toFixed(1)}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
-                      <div 
-                        className={`h-2.5 rounded-full ${
-                          systemMetrics.memory.percent > 80 ? 'bg-red-500' : 
-                          systemMetrics.memory.percent > 60 ? 'bg-yellow-500' : 'bg-green-500'
-                        }`}
-                        style={{ width: `${systemMetrics.memory.percent}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-600">
                       {systemMetrics.memory.used_gb.toFixed(1)} GB / {systemMetrics.memory.total_gb.toFixed(1)} GB
                     </div>
                   </div>
@@ -315,26 +360,191 @@ export default function AdminUsers(){
 
                 {/* Disk */}
                 {systemMetrics.disk && (
-                  <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-purple-50 to-purple-100">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-700">Disk Usage</span>
-                      <span className="text-sm font-bold text-gray-800">{systemMetrics.disk.percent}%</span>
+                      <span className="text-lg font-bold text-purple-700">{systemMetrics.disk.percent.toFixed(1)}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
-                      <div 
-                        className={`h-2.5 rounded-full ${
-                          systemMetrics.disk.percent > 80 ? 'bg-red-500' : 
-                          systemMetrics.disk.percent > 60 ? 'bg-yellow-500' : 'bg-green-500'
-                        }`}
-                        style={{ width: `${systemMetrics.disk.percent}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-600">
                       {systemMetrics.disk.used_gb.toFixed(1)} GB / {systemMetrics.disk.total_gb.toFixed(1)} GB
                     </div>
                   </div>
                 )}
               </div>
+
+              {/* Charts */}
+              {metricsHistory.timestamps.length > 0 && (
+                <div className="space-y-6">
+                  {/* CPU Chart */}
+                  {systemMetrics.cpu && (
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h6 className="font-semibold text-gray-800">CPU Usage (%)</h6>
+                        <span className="text-sm text-gray-500">Real-time</span>
+                      </div>
+                      <Line
+                        data={{
+                          labels: metricsHistory.timestamps,
+                          datasets: [{
+                            label: 'CPU %',
+                            data: metricsHistory.cpu,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 4
+                          }]
+                        }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: {
+                              display: false
+                            },
+                            tooltip: {
+                              mode: 'index',
+                              intersect: false
+                            }
+                          },
+                          scales: {
+                            y: {
+                              beginAtZero: true,
+                              max: 100,
+                              ticks: {
+                                callback: function(value) {
+                                  return value + '%'
+                                }
+                              }
+                            },
+                            x: {
+                              ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                              }
+                            }
+                          }
+                        }}
+                        height={150}
+                      />
+                    </div>
+                  )}
+
+                  {/* Memory Chart */}
+                  {systemMetrics.memory && (
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h6 className="font-semibold text-gray-800">Memory Usage (%)</h6>
+                        <span className="text-sm text-gray-500">Real-time</span>
+                      </div>
+                      <Line
+                        data={{
+                          labels: metricsHistory.timestamps,
+                          datasets: [{
+                            label: 'Memory %',
+                            data: metricsHistory.memory,
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 4
+                          }]
+                        }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: {
+                              display: false
+                            },
+                            tooltip: {
+                              mode: 'index',
+                              intersect: false
+                            }
+                          },
+                          scales: {
+                            y: {
+                              beginAtZero: true,
+                              max: 100,
+                              ticks: {
+                                callback: function(value) {
+                                  return value + '%'
+                                }
+                              }
+                            },
+                            x: {
+                              ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                              }
+                            }
+                          }
+                        }}
+                        height={150}
+                      />
+                    </div>
+                  )}
+
+                  {/* Disk Chart */}
+                  {systemMetrics.disk && (
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h6 className="font-semibold text-gray-800">Disk Usage (%)</h6>
+                        <span className="text-sm text-gray-500">Real-time</span>
+                      </div>
+                      <Line
+                        data={{
+                          labels: metricsHistory.timestamps,
+                          datasets: [{
+                            label: 'Disk %',
+                            data: metricsHistory.disk,
+                            borderColor: 'rgb(168, 85, 247)',
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 4
+                          }]
+                        }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: {
+                              display: false
+                            },
+                            tooltip: {
+                              mode: 'index',
+                              intersect: false
+                            }
+                          },
+                          scales: {
+                            y: {
+                              beginAtZero: true,
+                              max: 100,
+                              ticks: {
+                                callback: function(value) {
+                                  return value + '%'
+                                }
+                              }
+                            },
+                            x: {
+                              ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                              }
+                            }
+                          }
+                        }}
+                        height={150}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
               {systemMetrics.process && (
                 <div className="mt-4 text-xs text-gray-500">
                   Process Memory: {systemMetrics.process.memory_mb.toFixed(1)} MB
