@@ -121,21 +121,26 @@ export default function AdminMonitor(){
   )
 
   const Card = ({ title, children }) => (
-    <div className="bg-[#1f2937] text-gray-100 rounded-xl shadow border border-white/5 p-5">
+    <div className="bg-[#1f2937] text-gray-100 rounded-xl shadow border border-white/5 p-5 overflow-hidden">
       <div className="font-semibold mb-3 opacity-90">{title}</div>
-      {children}
+      <div className="overflow-hidden">
+        {children}
+      </div>
     </div>
   )
 
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      duration: 0 // Tắt animation để tránh giãn khi update
+    },
     plugins: {
       legend: {
         display: true,
         labels: {
           color: 'rgba(255, 255, 255, 0.8)',
-          font: { size: 12 }
+          font: { size: 11 }
         }
       },
       tooltip: {
@@ -152,7 +157,8 @@ export default function AdminMonitor(){
           color: 'rgba(255, 255, 255, 0.6)',
           maxRotation: 45,
           minRotation: 45,
-          font: { size: 10 }
+          font: { size: 9 },
+          maxTicksLimit: 10 // Giới hạn số labels trên trục X
         },
         grid: {
           color: 'rgba(255, 255, 255, 0.1)'
@@ -161,7 +167,7 @@ export default function AdminMonitor(){
       y: {
         ticks: {
           color: 'rgba(255, 255, 255, 0.6)',
-          font: { size: 10 }
+          font: { size: 9 }
         },
         grid: {
           color: 'rgba(255, 255, 255, 0.1)'
@@ -224,11 +230,11 @@ export default function AdminMonitor(){
 
           {/* Charts */}
           {metricsHistory.timestamps.length > 0 && (
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-4" style={{ minHeight: '220px' }}>
               {/* System Resources Chart */}
               {systemMetrics && metricsHistory.cpu.length > 0 && (
                 <Card title="System Resources (%)">
-                  <div style={{ height: '250px' }}>
+                  <div style={{ height: '200px', position: 'relative' }}>
                     <Line
                       data={{
                         labels: metricsHistory.timestamps,
@@ -289,8 +295,8 @@ export default function AdminMonitor(){
 
               {/* Requests Chart */}
               <Card title="Requests per Minute">
-                <div style={{ height: '250px' }}>
-                  <Line
+                <div style={{ height: '200px', position: 'relative' }}>
+                    <Line
                     data={{
                       labels: metricsHistory.timestamps,
                       datasets: [{
@@ -311,8 +317,8 @@ export default function AdminMonitor(){
 
               {/* Response Time Chart */}
               <Card title="Average Response Time (ms)">
-                <div style={{ height: '250px' }}>
-                  <Line
+                <div style={{ height: '200px', position: 'relative' }}>
+                    <Line
                     data={{
                       labels: metricsHistory.timestamps,
                       datasets: [{
