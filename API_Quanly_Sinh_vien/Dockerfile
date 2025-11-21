@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Tạo thư mục cần thiết
-RUN mkdir -p static
+RUN mkdir -p static uploads/projects uploads/submissions
 
 # Biến môi trường cho Flask
 ENV FLASK_APP=app.py

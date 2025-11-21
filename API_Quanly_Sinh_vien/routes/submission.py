@@ -1,8 +1,10 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, ProjectSubmission, ProjectEvaluation, Project, Team, TeamMember, Student, Teacher
 from sqlalchemy import and_
+from utils.file_upload import save_uploaded_file, get_file_path, delete_file
 from datetime import datetime
+import os
 
 submission_bp = Blueprint('submission', __name__)
 
@@ -80,7 +82,11 @@ def get_submission(submission_id):
 @jwt_required()
 def create_submission():
     try:
-        data = request.get_json()
+        # Lấy dữ liệu từ form hoặc JSON
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
         
         # Validation
         required_fields = ['project_id', 'submission_type', 'title']
@@ -127,6 +133,13 @@ def create_submission():
             
             student_id = student.id
         
+        # Xử lý file upload nếu có
+        file_info = None
+        if 'file' in request.files:
+            file = request.files['file']
+            if file and file.filename:
+                file_info = save_uploaded_file(file, subfolder='submissions')
+        
         # Create submission
         submission = ProjectSubmission(
             project_id=data['project_id'],
@@ -135,9 +148,9 @@ def create_submission():
             submission_type=data['submission_type'],
             title=data['title'],
             description=data.get('description'),
-            file_path=data.get('file_path'),
-            file_type=data.get('file_type'),
-            file_size=data.get('file_size'),
+            file_path=file_info['file_path'] if file_info else data.get('file_path'),
+            file_type=file_info['file_type'] if file_info else data.get('file_type'),
+            file_size=file_info['file_size'] if file_info else data.get('file_size'),
             submission_category=data.get('submission_category', 'other'),
             status='draft'
         )
@@ -150,6 +163,8 @@ def create_submission():
             'submission': submission.to_dict()
         }), 201
         
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -163,18 +178,36 @@ def update_submission(submission_id):
         if not submission:
             return jsonify({'error': 'Submission not found'}), 404
         
-        data = request.get_json()
+        # Lấy dữ liệu từ form hoặc JSON
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+        
+        # Xử lý file upload nếu có file mới
+        if 'file' in request.files:
+            file = request.files['file']
+            if file and file.filename:
+                # Xóa file cũ nếu có
+                if submission.file_path:
+                    delete_file(submission.file_path)
+                
+                # Upload file mới
+                file_info = save_uploaded_file(file, subfolder='submissions')
+                submission.file_path = file_info['file_path']
+                submission.file_type = file_info['file_type']
+                submission.file_size = file_info['file_size']
         
         # Update fields
         if 'title' in data:
             submission.title = data['title']
         if 'description' in data:
             submission.description = data['description']
-        if 'file_path' in data:
+        if 'file_path' in data and 'file' not in request.files:
             submission.file_path = data['file_path']
-        if 'file_type' in data:
+        if 'file_type' in data and 'file' not in request.files:
             submission.file_type = data['file_type']
-        if 'file_size' in data:
+        if 'file_size' in data and 'file' not in request.files:
             submission.file_size = data['file_size']
         if 'submission_category' in data:
             submission.submission_category = data['submission_category']
@@ -190,6 +223,8 @@ def update_submission(submission_id):
             'submission': submission.to_dict()
         }), 200
         
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -203,6 +238,10 @@ def delete_submission(submission_id):
         if not submission:
             return jsonify({'error': 'Submission not found'}), 404
         
+        # Xóa file nếu có
+        if submission.file_path:
+            delete_file(submission.file_path)
+        
         db.session.delete(submission)
         db.session.commit()
         
@@ -211,6 +250,23 @@ def delete_submission(submission_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@submission_bp.route('/submissions/<path:filepath>', methods=['GET'])
+@jwt_required()
+def download_submission_file(filepath):
+    """Download file từ uploads folder"""
+    try:
+        # filepath có dạng: submissions/filename hoặc filename
+        upload_folder = os.environ.get('UPLOAD_FOLDER', '/app/uploads')
+        directory = os.path.dirname(os.path.join(upload_folder, filepath))
+        filename = os.path.basename(filepath)
+        
+        if not os.path.exists(os.path.join(directory, filename)):
+            return jsonify({'error': 'File not found'}), 404
+        
+        return send_from_directory(directory, filename, as_attachment=True)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 404
 
 @submission_bp.route('/submissions/<int:submission_id>/review', methods=['POST'])
 @jwt_required()

@@ -4,6 +4,7 @@ from models import db, User
 from werkzeug.security import generate_password_hash
 import re
 
+# Blueprint là một đối tượng Flask để quản lý các route trong một module riêng biệt, nó giúp tổ chức code một cách rõ ràng và dễ quản lý
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['POST'])

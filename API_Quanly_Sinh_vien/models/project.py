@@ -1,6 +1,6 @@
 from datetime import datetime
 from . import db
-
+# Project là model cho bảng projects trong database
 class Project(db.Model):
     __tablename__ = 'projects'
     
@@ -28,7 +28,7 @@ class Project(db.Model):
     submissions = db.relationship('ProjectSubmission', backref='project', cascade='all, delete-orphan')
     evaluations = db.relationship('ProjectEvaluation', backref='project', cascade='all, delete-orphan')
     documents = db.relationship('ProjectDocument', backref='project', cascade='all, delete-orphan')
-    
+    # phương thức chuyển đổi thành dictionary(json) để trả về dữ liệu dạng json, phương thức này được gọi khi trả về dữ liệu dạng json 
     def to_dict(self):
         return {
             'id': self.id,
@@ -51,6 +51,7 @@ class Project(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
+# ProjectDocument là model cho bảng project_documents trong database dùng để lưu trữ các tài liệu liên quan đến dự án
 class ProjectDocument(db.Model):
     __tablename__ = 'project_documents'
     

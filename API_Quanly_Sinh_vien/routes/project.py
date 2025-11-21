@@ -1,9 +1,11 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Project, ProjectDocument, Teacher
 from sqlalchemy import or_
 from utils.decorators import admin_required, teacher_or_admin_required
+from utils.file_upload import save_uploaded_file, get_file_path, delete_file
 from datetime import datetime
+import os
 
 project_bp = Blueprint('project', __name__)
 
@@ -247,15 +249,28 @@ def upload_project_document(project_id):
         if not project:
             return jsonify({'error': 'Project not found'}), 404
         
-        data = request.get_json()
+        # Kiểm tra có file trong request không
+        file_info = None
+        if 'file' in request.files:
+            file = request.files['file']
+            if file and file.filename:
+                # Upload file thực tế
+                file_info = save_uploaded_file(file, subfolder='projects')
         
+        # Lấy dữ liệu từ form hoặc JSON
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+        
+        # Sử dụng thông tin từ file upload hoặc từ request
         document = ProjectDocument(
             project_id=project_id,
-            title=data['title'],
+            title=data.get('title') or (file_info['file_name'] if file_info else 'Untitled'),
             description=data.get('description'),
-            file_path=data.get('file_path'),
-            file_type=data.get('file_type'),
-            file_size=data.get('file_size'),
+            file_path=file_info['file_path'] if file_info else data.get('file_path'),
+            file_type=file_info['file_type'] if file_info else data.get('file_type'),
+            file_size=file_info['file_size'] if file_info else data.get('file_size'),
             document_type=data.get('document_type', 'other'),
             uploaded_by=get_jwt_identity()
         )
@@ -268,9 +283,28 @@ def upload_project_document(project_id):
             'document': document.to_dict()
         }), 201
         
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@project_bp.route('/documents/<path:filepath>', methods=['GET'])
+@jwt_required()
+def download_project_document(filepath):
+    """Download file từ uploads folder"""
+    try:
+        # filepath có dạng: projects/filename hoặc filename
+        upload_folder = os.environ.get('UPLOAD_FOLDER', '/app/uploads')
+        directory = os.path.dirname(os.path.join(upload_folder, filepath))
+        filename = os.path.basename(filepath)
+        
+        if not os.path.exists(os.path.join(directory, filename)):
+            return jsonify({'error': 'File not found'}), 404
+        
+        return send_from_directory(directory, filename, as_attachment=True)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 404
 
 @project_bp.route('/statistics', methods=['GET'])
 @jwt_required()

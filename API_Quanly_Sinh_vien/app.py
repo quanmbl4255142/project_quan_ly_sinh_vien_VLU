@@ -10,6 +10,13 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
+    # Cấu hình upload file
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+    upload_folder = os.environ.get('UPLOAD_FOLDER', '/app/uploads')
+    os.makedirs(upload_folder, exist_ok=True)
+    os.makedirs(os.path.join(upload_folder, 'projects'), exist_ok=True)
+    os.makedirs(os.path.join(upload_folder, 'submissions'), exist_ok=True)
+    
     # Initialize extensions
     init_db(app)
     
