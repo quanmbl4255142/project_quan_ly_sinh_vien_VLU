@@ -14,6 +14,7 @@ export default function AdminUsers(){
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [stats, setStats] = useState(null)
+  const [systemMetrics, setSystemMetrics] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [checking, setChecking] = useState(true)
 
@@ -73,7 +74,18 @@ export default function AdminUsers(){
   const fetchStats = React.useCallback(async () => {
     try{
       const res = await getAdminStatistics()
-      setStats(res.users || null)
+      console.log('[AdminUsers] Stats response:', res)
+      const statsData = res.users || null
+      console.log('[AdminUsers] Parsed stats:', statsData)
+      if (statsData) {
+        console.log('[AdminUsers] Active users:', statsData.active, 'Total users:', statsData.total)
+      }
+      setStats(statsData)
+      
+      // Set system metrics if available
+      if (res.metrics && res.metrics.system) {
+        setSystemMetrics(res.metrics.system)
+      }
     }catch(err){
       console.error('[AdminUsers] Stats error:', err)
     }
@@ -232,24 +244,105 @@ export default function AdminUsers(){
 
       {/* Statistics Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-4 shadow">
-            <div className="text-sm opacity-90">Tổng số Users</div>
-            <div className="text-3xl font-bold mt-1">{stats.total || 0}</div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-4 shadow">
+              <div className="text-sm opacity-90">Tổng số Users</div>
+              <div className="text-3xl font-bold mt-1">{stats.total || 0}</div>
+            </div>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-4 shadow">
+              <div className="text-sm opacity-90">Đang hoạt động</div>
+              <div className="text-3xl font-bold mt-1">{stats.active || 0}</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-4 shadow">
+              <div className="text-sm opacity-90">Admin</div>
+              <div className="text-3xl font-bold mt-1">{stats.admins || 0}</div>
+            </div>
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-lg p-4 shadow">
+              <div className="text-sm opacity-90">Giảng viên</div>
+              <div className="text-3xl font-bold mt-1">{stats.teachers || 0}</div>
+            </div>
           </div>
-          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-4 shadow">
-            <div className="text-sm opacity-90">Đang hoạt động</div>
-            <div className="text-3xl font-bold mt-1">{stats.active || 0}</div>
-          </div>
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-4 shadow">
-            <div className="text-sm opacity-90">Admin</div>
-            <div className="text-3xl font-bold mt-1">{stats.admins || 0}</div>
-          </div>
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-lg p-4 shadow">
-            <div className="text-sm opacity-90">Giảng viên</div>
-            <div className="text-3xl font-bold mt-1">{stats.teachers || 0}</div>
-          </div>
-        </div>
+
+          {/* System Metrics */}
+          {systemMetrics && !systemMetrics.error && (
+            <div className="bg-white rounded-lg shadow-sm mb-6 p-4">
+              <h5 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span>📊</span> Tổng quan hệ thống
+              </h5>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* CPU */}
+                {systemMetrics.cpu && (
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">CPU Usage</span>
+                      <span className="text-sm font-bold text-gray-800">{systemMetrics.cpu.percent}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                      <div 
+                        className={`h-2.5 rounded-full ${
+                          systemMetrics.cpu.percent > 80 ? 'bg-red-500' : 
+                          systemMetrics.cpu.percent > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${systemMetrics.cpu.percent}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-500">Cores: {systemMetrics.cpu.cores}</div>
+                  </div>
+                )}
+
+                {/* Memory */}
+                {systemMetrics.memory && (
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">Memory</span>
+                      <span className="text-sm font-bold text-gray-800">{systemMetrics.memory.percent}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                      <div 
+                        className={`h-2.5 rounded-full ${
+                          systemMetrics.memory.percent > 80 ? 'bg-red-500' : 
+                          systemMetrics.memory.percent > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${systemMetrics.memory.percent}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {systemMetrics.memory.used_gb.toFixed(1)} GB / {systemMetrics.memory.total_gb.toFixed(1)} GB
+                    </div>
+                  </div>
+                )}
+
+                {/* Disk */}
+                {systemMetrics.disk && (
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">Disk Usage</span>
+                      <span className="text-sm font-bold text-gray-800">{systemMetrics.disk.percent}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                      <div 
+                        className={`h-2.5 rounded-full ${
+                          systemMetrics.disk.percent > 80 ? 'bg-red-500' : 
+                          systemMetrics.disk.percent > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${systemMetrics.disk.percent}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {systemMetrics.disk.used_gb.toFixed(1)} GB / {systemMetrics.disk.total_gb.toFixed(1)} GB
+                    </div>
+                  </div>
+                )}
+              </div>
+              {systemMetrics.process && (
+                <div className="mt-4 text-xs text-gray-500">
+                  Process Memory: {systemMetrics.process.memory_mb.toFixed(1)} MB
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {/* Filters */}
