@@ -13,11 +13,26 @@ def get_all_users():
     """Admin: Get all users in the system"""
     try:
         users = User.query.all()
+        users_list = []
+        for user in users:
+            try:
+                users_list.append(user.to_dict())
+            except Exception as e:
+                # Log error for individual user but continue
+                print(f"Error serializing user {user.id}: {str(e)}")
+                continue
+        
         return jsonify({
-            'users': [user.to_dict() for user in users]
+            'users': users_list
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import traceback
+        print(f"Error in get_all_users: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({
+            'error': str(e),
+            'message': 'Failed to retrieve users'
+        }), 500
 
 @admin_bp.route('/metrics', methods=['GET'])
 @jwt_required()

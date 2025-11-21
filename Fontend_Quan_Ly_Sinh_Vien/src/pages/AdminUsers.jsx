@@ -96,13 +96,31 @@ export default function AdminUsers(){
       console.log('[AdminUsers] Calling getAllUsers...')
       const res = await getAllUsers()
       console.log('[AdminUsers] Response:', res)
-      const usersList = res.users || res || []
+      console.log('[AdminUsers] Response type:', typeof res)
+      console.log('[AdminUsers] Response.users:', res?.users)
+      
+      // Handle different response formats
+      let usersList = []
+      if (Array.isArray(res)) {
+        usersList = res
+      } else if (res && Array.isArray(res.users)) {
+        usersList = res.users
+      } else if (res && res.data && Array.isArray(res.data)) {
+        usersList = res.data
+      } else {
+        console.warn('[AdminUsers] Unexpected response format:', res)
+        usersList = []
+      }
+      
+      console.log('[AdminUsers] Parsed users list:', usersList.length, 'users')
       setUsers(usersList)
       setFilteredUsers(usersList)
     }catch(err){
-      console.error('[AdminUsers] Error:', err)
-      const errorMsg = err?.data?.error || err?.message || 'Không thể tải danh sách users'
-      setError(errorMsg)
+      console.error('[AdminUsers] Error details:', err)
+      console.error('[AdminUsers] Error status:', err?.status)
+      console.error('[AdminUsers] Error data:', err?.data)
+      const errorMsg = err?.data?.error || err?.data?.message || err?.message || 'Không thể tải danh sách users'
+      setError(`Lỗi: ${errorMsg}${err?.status ? ` (Status: ${err.status})` : ''}`)
       setUsers([])
       setFilteredUsers([])
     }finally{
