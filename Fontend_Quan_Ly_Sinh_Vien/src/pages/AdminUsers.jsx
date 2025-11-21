@@ -38,40 +38,8 @@ export default function AdminUsers(){
     }
   }, [])
 
-  // Fetch users and stats
-  useEffect(() => {
-    if (!checking && isAdmin) {
-      console.log('[AdminUsers] Fetching data...')
-      fetchUsers()
-      fetchStats()
-    }
-  }, [checking, isAdmin])
-
-  // Filter users
-  useEffect(() => {
-    let filtered = [...users]
-
-    if(searchTerm){
-      filtered = filtered.filter(u => 
-        u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
-
-    if(roleFilter !== 'all'){
-      filtered = filtered.filter(u => u.role === roleFilter)
-    }
-
-    if(statusFilter !== 'all'){
-      filtered = filtered.filter(u => 
-        statusFilter === 'active' ? u.is_active : !u.is_active
-      )
-    }
-
-    setFilteredUsers(filtered)
-  }, [users, searchTerm, roleFilter, statusFilter])
-
-  async function fetchUsers(){
+  // Define fetch functions first
+  const fetchUsers = React.useCallback(async () => {
     setLoading(true)
     setError('')
     try{
@@ -100,16 +68,50 @@ export default function AdminUsers(){
     }finally{
       setLoading(false)
     }
-  }
+  }, [])
 
-  async function fetchStats(){
+  const fetchStats = React.useCallback(async () => {
     try{
       const res = await getAdminStatistics()
       setStats(res.users || null)
     }catch(err){
       console.error('[AdminUsers] Stats error:', err)
     }
-  }
+  }, [])
+
+  // Fetch users and stats
+  useEffect(() => {
+    if (!checking && isAdmin) {
+      console.log('[AdminUsers] Fetching data...')
+      fetchUsers()
+      fetchStats()
+    }
+  }, [checking, isAdmin, fetchUsers, fetchStats])
+
+  // Filter users
+  useEffect(() => {
+    let filtered = [...users]
+
+    if(searchTerm){
+      filtered = filtered.filter(u => 
+        u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+
+    if(roleFilter !== 'all'){
+      filtered = filtered.filter(u => u.role === roleFilter)
+    }
+
+    if(statusFilter !== 'all'){
+      filtered = filtered.filter(u => 
+        statusFilter === 'active' ? u.is_active : !u.is_active
+      )
+    }
+
+    setFilteredUsers(filtered)
+  }, [users, searchTerm, roleFilter, statusFilter])
+
 
   async function handleToggleActive(userId){
     setError('')
