@@ -50,20 +50,27 @@ export default function AdminUsers(){
     )
   }
 
-  // Redirect if not admin
-  if (!isUserAdmin) {
-    console.log('[AdminUsers] Not admin, redirecting. User:', user, 'storedUser:', storedUser, 'Role:', userRole)
-    return <Navigate to="/dashboard" replace />
-  }
+  // Redirect if not admin (but allow component to render first to fetch data)
+  // This check happens after mounted to ensure we can see what's happening
 
-  // Fetch users and stats
+  // Fetch users and stats - always try to fetch if mounted and admin
   useEffect(() => {
-    if (mounted && isUserAdmin) {
-      console.log('[AdminUsers] Fetching data...')
-      fetchUsers()
-      fetchStats()
+    if (mounted) {
+      console.log('[AdminUsers] useEffect triggered - mounted:', mounted, 'isUserAdmin:', isUserAdmin, 'userRole:', userRole)
+      if (isUserAdmin) {
+        console.log('[AdminUsers] User is admin, fetching data...')
+        fetchUsers()
+        fetchStats()
+      } else {
+        console.warn('[AdminUsers] User is NOT admin (role:', userRole, '), will redirect')
+        // Small delay before redirect to allow logs to show
+        const timer = setTimeout(() => {
+          console.log('[AdminUsers] Redirecting to dashboard...')
+        }, 1000)
+        return () => clearTimeout(timer)
+      }
     }
-  }, [mounted, isUserAdmin])
+  }, [mounted, isUserAdmin, userRole])
 
   // Filter users
   useEffect(() => {
@@ -175,6 +182,21 @@ export default function AdminUsers(){
   }
 
   console.log('[AdminUsers] Render - isUserAdmin:', isUserAdmin, 'user:', user, 'loading:', loading, 'users:', users.length)
+
+  // Show redirect message if not admin (after mounted)
+  if (mounted && !isUserAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <span className="text-4xl mb-4 block">🚫</span>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Không có quyền truy cập</h2>
+          <p className="text-gray-600 mb-4">Bạn cần quyền Admin để truy cập trang này</p>
+          <p className="text-sm text-gray-500">Role hiện tại: {userRole || 'N/A'}</p>
+          <Navigate to="/dashboard" replace />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
