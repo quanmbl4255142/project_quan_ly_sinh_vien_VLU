@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { getTeams, createTeam, updateTeam, deleteTeam, getProjects, getStudents, addTeamMember, removeTeamMember } from '../api'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Teams(){
+  const { isTeacherOrAdmin } = useAuth()
   const [teams, setTeams] = useState([])
   const [projects, setProjects] = useState([])
   const [students, setStudents] = useState([])
@@ -181,7 +183,9 @@ export default function Teams(){
                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200">
                   <button onClick={()=>openMemberForm(t)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Thành viên</button>
                   <button onClick={()=>openForm(t)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Sửa</button>
-                  <button onClick={()=>handleDelete(t.id)} className="rounded bg-blue-600 text-white px-2 py-1 text-xs hover:bg-blue-700">Xóa</button>
+                  {isTeacherOrAdmin() && (
+                    <button onClick={()=>handleDelete(t.id)} className="rounded bg-red-600 text-white px-2 py-1 text-xs hover:bg-red-700">Xóa</button>
+                  )}
                 </div>
               </div>
             </div>
