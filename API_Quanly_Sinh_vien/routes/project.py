@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Project, ProjectDocument, Teacher
-from sqlalchemy import or_
+from models import db, Project, ProjectDocument, Teacher, User, Student, Team, TeamMember, ProjectSubmission
+from sqlalchemy import or_, and_
 from utils.decorators import admin_required, teacher_or_admin_required
 from utils.file_upload import save_uploaded_file, get_file_path, delete_file
 from datetime import datetime
@@ -13,6 +13,13 @@ project_bp = Blueprint('project', __name__)
 @jwt_required()
 def get_projects():
     try:
+        # Lấy thông tin user hiện tại
+        user_id = int(get_jwt_identity())
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         search = request.args.get('search', '')
@@ -23,6 +30,42 @@ def get_projects():
         academic_year = request.args.get('academic_year', '')
         
         query = Project.query
+        
+        # Nếu là student, chỉ cho xem projects mà họ đã tham gia
+        if user.role == 'student':
+            # Tìm student profile
+            student = Student.query.filter_by(user_id=user_id).first()
+            if not student:
+                return jsonify({'error': 'Student profile not found'}), 404
+            
+            # Lấy danh sách project IDs mà student đã tham gia:
+            # 1. Qua teams (student là member của team trong project)
+            team_memberships = db.session.query(Team.project_id).join(
+                TeamMember, Team.id == TeamMember.team_id
+            ).filter(
+                and_(
+                    TeamMember.student_id == student.id,
+                    TeamMember.status == 'active'
+                )
+            ).distinct().all()
+            project_ids_from_teams = [tm[0] for tm in team_memberships]
+            
+            # 2. Qua individual submissions (student có submission cho project)
+            individual_submissions = db.session.query(ProjectSubmission.project_id).filter(
+                ProjectSubmission.student_id == student.id
+            ).distinct().all()
+            project_ids_from_submissions = [sub[0] for sub in individual_submissions]
+            
+            # Gộp danh sách project IDs
+            project_ids = list(set(project_ids_from_teams + project_ids_from_submissions))
+            
+            if project_ids:
+                query = query.filter(Project.id.in_(project_ids))
+            else:
+                # Nếu student chưa tham gia project nào, trả về danh sách rỗng
+                query = query.filter(Project.id == -1)  # Không có project nào
+        
+        # Teacher và Admin xem tất cả projects (không cần filter thêm)
         
         if search:
             query = query.filter(
@@ -66,11 +109,48 @@ def get_projects():
 @jwt_required()
 def get_project(project_id):
     try:
+        # Lấy thông tin user hiện tại
+        user_id = int(get_jwt_identity())
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
         project = Project.query.get(project_id)
         
         if not project:
             return jsonify({'error': 'Project not found'}), 404
         
+        # Nếu là student, kiểm tra xem họ có tham gia project này không
+        if user.role == 'student':
+            student = Student.query.filter_by(user_id=user_id).first()
+            if not student:
+                return jsonify({'error': 'Student profile not found'}), 404
+            
+            # Kiểm tra student có tham gia project qua team không
+            team_member = db.session.query(TeamMember).join(Team).filter(
+                and_(
+                    TeamMember.student_id == student.id,
+                    Team.project_id == project_id,
+                    TeamMember.status == 'active'
+                )
+            ).first()
+            
+            # Kiểm tra student có individual submission cho project không
+            has_submission = ProjectSubmission.query.filter(
+                and_(
+                    ProjectSubmission.project_id == project_id,
+                    ProjectSubmission.student_id == student.id
+                )
+            ).first()
+            
+            if not team_member and not has_submission:
+                return jsonify({
+                    'error': 'Permission denied',
+                    'message': 'You can only view projects you are participating in'
+                }), 403
+        
+        # Teacher và Admin có thể xem tất cả projects
         project_data = project.to_dict()
         
         # Add supervisor info

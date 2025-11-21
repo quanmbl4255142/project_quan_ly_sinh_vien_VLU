@@ -1,12 +1,53 @@
 from flask import Blueprint, request, jsonify, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, ProjectSubmission, ProjectEvaluation, Project, Team, TeamMember, Student, Teacher
-from sqlalchemy import and_
+from models import db, ProjectSubmission, ProjectEvaluation, Project, Team, TeamMember, Student, Teacher, User
+from sqlalchemy import and_, or_
 from utils.file_upload import save_uploaded_file, get_file_path, delete_file
 from datetime import datetime
 import os
 
 submission_bp = Blueprint('submission', __name__)
+
+# ============= HELPER FUNCTIONS =============
+
+def check_submission_ownership(submission, user_id):
+    """
+    Kiểm tra xem user có quyền truy cập submission không
+    Returns: (is_owner: bool, error_message: str or None)
+    """
+    user = User.query.get(user_id)
+    if not user:
+        return False, 'User not found'
+    
+    # Admin và Teacher có thể xem tất cả
+    if user.role in ['admin', 'teacher']:
+        return True, None
+    
+    # Student chỉ xem được submissions của chính họ
+    if user.role == 'student':
+        student = Student.query.filter_by(user_id=user_id).first()
+        if not student:
+            return False, 'Student profile not found'
+        
+        # Kiểm tra individual submission
+        if submission.student_id == student.id:
+            return True, None
+        
+        # Kiểm tra team submission
+        if submission.team_id:
+            team_member = TeamMember.query.filter(
+                and_(
+                    TeamMember.team_id == submission.team_id,
+                    TeamMember.student_id == student.id,
+                    TeamMember.status == 'active'
+                )
+            ).first()
+            if team_member:
+                return True, None
+        
+        return False, 'You can only access your own submissions'
+    
+    return False, 'Unknown user role'
 
 # ============= PROJECT SUBMISSIONS =============
 
@@ -14,6 +55,13 @@ submission_bp = Blueprint('submission', __name__)
 @jwt_required()
 def get_submissions():
     try:
+        # Lấy thông tin user hiện tại
+        user_id = int(get_jwt_identity())
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         project_id = request.args.get('project_id', type=int)
@@ -23,6 +71,39 @@ def get_submissions():
         category = request.args.get('category', '')
         
         query = ProjectSubmission.query
+        
+        # Nếu là student, chỉ cho xem submissions của chính họ
+        if user.role == 'student':
+            # Tìm student profile
+            student = Student.query.filter_by(user_id=user_id).first()
+            if not student:
+                return jsonify({'error': 'Student profile not found'}), 404
+            
+            # Lấy danh sách team IDs mà student là member
+            team_memberships = db.session.query(TeamMember.team_id).filter(
+                and_(
+                    TeamMember.student_id == student.id,
+                    TeamMember.status == 'active'
+                )
+            ).all()
+            team_ids = [tm[0] for tm in team_memberships]
+            
+            # Lọc submissions:
+            # 1. Individual submissions của chính student này
+            # 2. Team submissions của các team mà student là member
+            if team_ids:
+                query = query.filter(
+                    or_(
+                        ProjectSubmission.student_id == student.id,  # Individual submissions
+                        ProjectSubmission.team_id.in_(team_ids)  # Team submissions
+                    )
+                )
+            else:
+                # Nếu student chưa có team nào, chỉ xem individual submissions
+                query = query.filter(ProjectSubmission.student_id == student.id)
+        
+        # Teacher và Admin xem tất cả (không cần filter thêm)
+        # Nhưng vẫn có thể filter theo các tham số query
         
         if project_id:
             query = query.filter(ProjectSubmission.project_id == project_id)
@@ -57,11 +138,27 @@ def get_submissions():
 @jwt_required()
 def get_submission(submission_id):
     try:
+        # Lấy thông tin user hiện tại
+        user_id = int(get_jwt_identity())
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
         submission = ProjectSubmission.query.get(submission_id)
         
         if not submission:
             return jsonify({'error': 'Submission not found'}), 404
         
+        # Kiểm tra quyền truy cập
+        is_owner, error_msg = check_submission_ownership(submission, user_id)
+        if not is_owner:
+            return jsonify({
+                'error': 'Permission denied',
+                'message': error_msg
+            }), 403
+        
+        # Teacher và Admin có thể xem tất cả
         submission_data = submission.to_dict()
         
         # Add project info
@@ -173,10 +270,25 @@ def create_submission():
 @jwt_required()
 def update_submission(submission_id):
     try:
+        # Lấy thông tin user hiện tại
+        user_id = int(get_jwt_identity())
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
         submission = ProjectSubmission.query.get(submission_id)
         
         if not submission:
             return jsonify({'error': 'Submission not found'}), 404
+        
+        # Kiểm tra quyền truy cập
+        is_owner, error_msg = check_submission_ownership(submission, user_id)
+        if not is_owner:
+            return jsonify({
+                'error': 'Permission denied',
+                'message': error_msg
+            }), 403
         
         # Lấy dữ liệu từ form hoặc JSON
         if request.is_json:
@@ -233,10 +345,25 @@ def update_submission(submission_id):
 @jwt_required()
 def delete_submission(submission_id):
     try:
+        # Lấy thông tin user hiện tại
+        user_id = int(get_jwt_identity())
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
         submission = ProjectSubmission.query.get(submission_id)
         
         if not submission:
             return jsonify({'error': 'Submission not found'}), 404
+        
+        # Kiểm tra quyền truy cập
+        is_owner, error_msg = check_submission_ownership(submission, user_id)
+        if not is_owner:
+            return jsonify({
+                'error': 'Permission denied',
+                'message': error_msg
+            }), 403
         
         # Xóa file nếu có
         if submission.file_path:
