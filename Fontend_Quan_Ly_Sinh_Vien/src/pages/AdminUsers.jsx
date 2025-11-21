@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom'
 import { getAllUsers, toggleUserActive, changeUserRole, deleteUser, getAdminStatistics } from '../api'
 
 export default function AdminUsers(){
-  const { user, isAdmin } = useAuth()
+  const { user } = useAuth()
   const [users, setUsers] = useState([])
   const [filteredUsers, setFilteredUsers] = useState([])
   const [error, setError] = useState('')
@@ -14,63 +14,38 @@ export default function AdminUsers(){
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [stats, setStats] = useState(null)
-  const [mounted, setMounted] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [checking, setChecking] = useState(true)
 
-  // Force component to mount
+  // Check admin status
   useEffect(() => {
-    console.log('[AdminUsers] Component mounting...')
-    setMounted(true)
-    console.log('[AdminUsers] Component mounted')
+    try {
+      const storedUser = localStorage.getItem('user')
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser)
+        const userIsAdmin = parsedUser?.role === 'admin'
+        console.log('[AdminUsers] User check:', { parsedUser, userIsAdmin })
+        setIsAdmin(userIsAdmin)
+      } else {
+        console.log('[AdminUsers] No user in localStorage')
+        setIsAdmin(false)
+      }
+    } catch (e) {
+      console.error('[AdminUsers] Error checking admin:', e)
+      setIsAdmin(false)
+    } finally {
+      setChecking(false)
+    }
   }, [])
 
-  // Check if user is admin - get from localStorage directly for reliability
-  const storedUser = React.useMemo(() => {
-    try {
-      const userStr = localStorage.getItem('user')
-      return userStr ? JSON.parse(userStr) : null
-    } catch (e) {
-      return null
-    }
-  }, [user])
-
-  const userRole = storedUser?.role || user?.role
-  const isUserAdmin = userRole === 'admin'
-
-  console.log('[AdminUsers] Render - mounted:', mounted, 'user:', user, 'storedUser:', storedUser, 'userRole:', userRole, 'isUserAdmin:', isUserAdmin)
-
-  // Show loading while mounting
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <span className="text-4xl animate-spin block mb-4">⏳</span>
-          <span className="text-lg text-gray-600">Đang tải...</span>
-        </div>
-      </div>
-    )
-  }
-
-  // Redirect if not admin (but allow component to render first to fetch data)
-  // This check happens after mounted to ensure we can see what's happening
-
-  // Fetch users and stats - always try to fetch if mounted and admin
+  // Fetch users and stats
   useEffect(() => {
-    if (mounted) {
-      console.log('[AdminUsers] useEffect triggered - mounted:', mounted, 'isUserAdmin:', isUserAdmin, 'userRole:', userRole)
-      if (isUserAdmin) {
-        console.log('[AdminUsers] User is admin, fetching data...')
-        fetchUsers()
-        fetchStats()
-      } else {
-        console.warn('[AdminUsers] User is NOT admin (role:', userRole, '), will redirect')
-        // Small delay before redirect to allow logs to show
-        const timer = setTimeout(() => {
-          console.log('[AdminUsers] Redirecting to dashboard...')
-        }, 1000)
-        return () => clearTimeout(timer)
-      }
+    if (!checking && isAdmin) {
+      console.log('[AdminUsers] Fetching data...')
+      fetchUsers()
+      fetchStats()
     }
-  }, [mounted, isUserAdmin, userRole])
+  }, [checking, isAdmin])
 
   // Filter users
   useEffect(() => {
@@ -103,10 +78,7 @@ export default function AdminUsers(){
       console.log('[AdminUsers] Calling getAllUsers...')
       const res = await getAllUsers()
       console.log('[AdminUsers] Response:', res)
-      console.log('[AdminUsers] Response type:', typeof res)
-      console.log('[AdminUsers] Response.users:', res?.users)
       
-      // Handle different response formats
       let usersList = []
       if (Array.isArray(res)) {
         usersList = res
@@ -114,18 +86,13 @@ export default function AdminUsers(){
         usersList = res.users
       } else if (res && res.data && Array.isArray(res.data)) {
         usersList = res.data
-      } else {
-        console.warn('[AdminUsers] Unexpected response format:', res)
-        usersList = []
       }
       
-      console.log('[AdminUsers] Parsed users list:', usersList.length, 'users')
+      console.log('[AdminUsers] Parsed users:', usersList.length)
       setUsers(usersList)
       setFilteredUsers(usersList)
     }catch(err){
-      console.error('[AdminUsers] Error details:', err)
-      console.error('[AdminUsers] Error status:', err?.status)
-      console.error('[AdminUsers] Error data:', err?.data)
+      console.error('[AdminUsers] Error:', err)
       const errorMsg = err?.data?.error || err?.data?.message || err?.message || 'Không thể tải danh sách users'
       setError(`Lỗi: ${errorMsg}${err?.status ? ` (Status: ${err.status})` : ''}`)
       setUsers([])
@@ -181,17 +148,26 @@ export default function AdminUsers(){
     }
   }
 
-  console.log('[AdminUsers] Render - isUserAdmin:', isUserAdmin, 'user:', user, 'loading:', loading, 'users:', users.length)
+  // Show loading while checking
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <span className="text-4xl animate-spin block mb-4">⏳</span>
+          <span className="text-lg text-gray-600">Đang kiểm tra quyền...</span>
+        </div>
+      </div>
+    )
+  }
 
-  // Show redirect message if not admin (after mounted)
-  if (mounted && !isUserAdmin) {
+  // Redirect if not admin
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <span className="text-4xl mb-4 block">🚫</span>
           <h2 className="text-xl font-bold text-gray-800 mb-2">Không có quyền truy cập</h2>
           <p className="text-gray-600 mb-4">Bạn cần quyền Admin để truy cập trang này</p>
-          <p className="text-sm text-gray-500">Role hiện tại: {userRole || 'N/A'}</p>
           <Navigate to="/dashboard" replace />
         </div>
       </div>
