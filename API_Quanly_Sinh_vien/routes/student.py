@@ -64,13 +64,13 @@ def get_student(student_id):
 
 @student_bp.route('/', methods=['POST'])
 @jwt_required()
-@admin_required
+@teacher_or_admin_required
 def create_student():
     try:
         data = request.get_json()
         
-        # Validation
-        required_fields = ['user_id', 'student_code', 'full_name', 'major']
+        # Validation: student_code, full_name, major are always required
+        required_fields = ['student_code', 'full_name', 'major']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({'error': f'{field} is required'}), 400
@@ -79,16 +79,53 @@ def create_student():
         if Student.query.filter_by(student_code=data['student_code']).first():
             return jsonify({'error': 'Student code already exists'}), 400
         
-        # Check if user exists and is a student
-        user = User.query.get(data['user_id'])
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-        if user.role != 'student':
-            return jsonify({'error': 'User must have student role'}), 400
+        # Handle user creation/retrieval
+        user = None
+        user_id = data.get('user_id')
+        
+        if user_id:
+            # If user_id is provided, use existing user
+            user = User.query.get(user_id)
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+            if user.role != 'student':
+                return jsonify({'error': 'User must have student role'}), 400
+            # Check if user already has a student profile
+            if user.student_profile:
+                return jsonify({'error': 'User already has a student profile'}), 400
+        else:
+            # Create new user if username, email, password are provided
+            if not data.get('username') or not data.get('email') or not data.get('password'):
+                return jsonify({'error': 'Either user_id or (username, email, password) is required'}), 400
+            
+            # Validate email format
+            if not re.match(r'^[^@]+@[^@]+\.[^@]+$', data['email']):
+                return jsonify({'error': 'Invalid email format'}), 400
+            
+            # Check if username or email already exists
+            if User.query.filter_by(username=data['username']).first():
+                return jsonify({'error': 'Username already exists'}), 400
+            if User.query.filter_by(email=data['email']).first():
+                return jsonify({'error': 'Email already exists'}), 400
+            
+            # Validate password length
+            if len(data['password']) < 6:
+                return jsonify({'error': 'Password must be at least 6 characters'}), 400
+            
+            # Create new user with student role
+            user = User(
+                username=data['username'],
+                email=data['email'],
+                role='student'
+            )
+            user.set_password(data['password'])
+            db.session.add(user)
+            db.session.flush()  # Flush to get user.id
+            user_id = user.id
         
         # Create student
         student = Student(
-            user_id=data['user_id'],
+            user_id=user_id,
             student_code=data['student_code'],
             full_name=data['full_name'],
             date_of_birth=data.get('date_of_birth'),
@@ -106,7 +143,8 @@ def create_student():
         
         return jsonify({
             'message': 'Student created successfully',
-            'student': student.to_dict()
+            'student': student.to_dict(),
+            'user': user.to_dict() if user else None
         }), 201
         
     except Exception as e:

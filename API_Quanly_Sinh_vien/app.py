@@ -13,8 +13,8 @@ def create_app():
     # Cấu hình upload file
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
     upload_folder = os.environ.get('UPLOAD_FOLDER', '/app/uploads')
-    os.makedirs(upload_folder, exist_ok=True)
-    os.makedirs(os.path.join(upload_folder, 'projects'), exist_ok=True)
+    os.makedirs(upload_folder, exist_ok=True) # exist_ok=True nghĩa là nếu thư mục đã tồn tại thì không tạo lại
+    os.makedirs(os.path.join(upload_folder, 'projects'), exist_ok=True)# os.path.join(upload_folder, 'projects') nghĩa là tạo thư mục projects trong thư mục upload_folder
     os.makedirs(os.path.join(upload_folder, 'submissions'), exist_ok=True)
     
     # Initialize extensions
@@ -22,11 +22,13 @@ def create_app():
     
     # CORS configuration - allow frontend origin
     frontend_url = os.environ.get('FRONTEND_URL', '*')
+    
+    # phương thức CORS() là một extension của Flask-CORS để cho phép frontend origin từ bất kỳ đâu nếu như FRONTEND_URL không được set thì sẽ cho phép tất cả các origin
     CORS(app, 
          resources={r"/api/*": {"origins": frontend_url if frontend_url != '*' else "*"}},
          supports_credentials=True,
          allow_headers=["Content-Type", "Authorization"])
-    # JWTManager là một extension của Flask-JWT-Extended để quản lý JWT token, token sẽ biến mất sau khi đăng nhập khoảng 1 giờ
+    # JWTManager là một extension của Flask-JWT-Extended để quản lý JWT token, token sẽ biến mất sau khi đăng nhập khoảng 1 giờ, 1 giờ này là default của JWTManager 
     jwt = JWTManager(app)
     
     # Import and register blueprints

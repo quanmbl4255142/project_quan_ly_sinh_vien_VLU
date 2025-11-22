@@ -129,52 +129,107 @@ export default function AdminMonitor(){
     </div>
   )
 
-  const chartOptions = {
+  // Chart options giống Railway - clean và professional
+  const createChartOptions = (yAxisConfig = {}) => ({
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false
+    },
     animation: {
-      duration: 0 // Tắt animation để tránh giãn khi update
+      duration: 0
     },
     plugins: {
       legend: {
         display: true,
+        position: 'top',
         labels: {
-          color: 'rgba(255, 255, 255, 0.8)',
-          font: { size: 11 }
+          color: 'rgba(255, 255, 255, 0.7)',
+          font: { size: 11, weight: '500' },
+          padding: 12,
+          usePointStyle: true,
+          pointStyle: 'circle',
+          boxWidth: 8,
+          boxHeight: 8
         }
       },
       tooltip: {
+        enabled: true,
         mode: 'index',
         intersect: false,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
         titleColor: 'rgba(255, 255, 255, 0.9)',
-        bodyColor: 'rgba(255, 255, 255, 0.8)'
+        bodyColor: 'rgba(255, 255, 255, 0.8)',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        padding: 12,
+        titleFont: { size: 12, weight: '600' },
+        bodyFont: { size: 11 },
+        cornerRadius: 6,
+        displayColors: true,
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || ''
+            if (label) {
+              label += ': '
+            }
+            if (context.parsed.y !== null) {
+              label += context.parsed.y.toFixed(1)
+              if (yAxisConfig.unit) {
+                label += yAxisConfig.unit
+              }
+            }
+            return label
+          }
+        }
       }
     },
     scales: {
       x: {
-        ticks: {
-          color: 'rgba(255, 255, 255, 0.6)',
-          maxRotation: 45,
-          minRotation: 45,
-          font: { size: 9 },
-          maxTicksLimit: 10 // Giới hạn số labels trên trục X
-        },
+        display: true,
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          display: true,
+          color: 'rgba(255, 255, 255, 0.05)',
+          drawBorder: false,
+          lineWidth: 1
+        },
+        ticks: {
+          color: 'rgba(255, 255, 255, 0.5)',
+          font: { size: 10 },
+          maxRotation: 0,
+          minRotation: 0,
+          maxTicksLimit: 8,
+          padding: 8
+        },
+        border: {
+          display: false
         }
       },
       y: {
-        ticks: {
-          color: 'rgba(255, 255, 255, 0.6)',
-          font: { size: 9 }
-        },
+        display: true,
+        beginAtZero: yAxisConfig.beginAtZero !== false,
+        max: yAxisConfig.max,
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          display: true,
+          color: 'rgba(255, 255, 255, 0.05)',
+          drawBorder: false,
+          lineWidth: 1
+        },
+        ticks: {
+          color: 'rgba(255, 255, 255, 0.5)',
+          font: { size: 10 },
+          padding: 8,
+          callback: yAxisConfig.callback || function(value) {
+            return value
+          }
+        },
+        border: {
+          display: false
         }
       }
     }
-  }
+  })
 
   return (
     <div className="space-y-6 bg-[#0b1220] -mx-6 px-6 py-4 rounded-xl">
@@ -228,13 +283,13 @@ export default function AdminMonitor(){
             </div>
           )}
 
-          {/* Charts */}
+          {/* Charts - Railway Style */}
           {metricsHistory.timestamps.length > 0 && (
-            <div className="grid md:grid-cols-2 gap-4" style={{ minHeight: '220px' }}>
+            <div className="grid md:grid-cols-2 gap-4">
               {/* System Resources Chart */}
               {systemMetrics && metricsHistory.cpu.length > 0 && (
-                <Card title="System Resources (%)">
-                  <div style={{ height: '200px', position: 'relative' }}>
+                <Card title="System Resources">
+                  <div style={{ height: '240px', position: 'relative' }}>
                     <Line
                       data={{
                         labels: metricsHistory.timestamps,
@@ -243,119 +298,110 @@ export default function AdminMonitor(){
                             label: 'CPU',
                             data: metricsHistory.cpu,
                             borderColor: 'rgb(251, 146, 60)',
-                            backgroundColor: 'rgba(251, 146, 60, 0.1)',
+                            backgroundColor: 'rgba(251, 146, 60, 0.15)',
                             fill: true,
-                            tension: 0.4,
+                            tension: 0.5,
+                            borderWidth: 2,
                             pointRadius: 0,
-                            pointHoverRadius: 4
+                            pointHoverRadius: 5,
+                            pointHoverBorderWidth: 2
                           },
                           {
                             label: 'Memory',
                             data: metricsHistory.memory,
                             borderColor: 'rgb(34, 197, 94)',
-                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.15)',
                             fill: true,
-                            tension: 0.4,
+                            tension: 0.5,
+                            borderWidth: 2,
                             pointRadius: 0,
-                            pointHoverRadius: 4
+                            pointHoverRadius: 5,
+                            pointHoverBorderWidth: 2
                           },
                           {
                             label: 'Disk',
                             data: metricsHistory.disk,
                             borderColor: 'rgb(168, 85, 247)',
-                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            backgroundColor: 'rgba(168, 85, 247, 0.15)',
                             fill: true,
-                            tension: 0.4,
+                            tension: 0.5,
+                            borderWidth: 2,
                             pointRadius: 0,
-                            pointHoverRadius: 4
+                            pointHoverRadius: 5,
+                            pointHoverBorderWidth: 2
                           }
                         ]
                       }}
-                      options={{
-                        ...chartOptions,
-                        scales: {
-                          ...chartOptions.scales,
-                          y: {
-                            ...chartOptions.scales.y,
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                              ...chartOptions.scales.y.ticks,
-                              callback: function(value) {
-                                return value + '%'
-                              }
-                            }
-                          }
+                      options={createChartOptions({
+                        beginAtZero: true,
+                        max: 100,
+                        unit: '%',
+                        callback: function(value) {
+                          return value + '%'
                         }
-                      }}
+                      })}
                     />
                   </div>
                 </Card>
               )}
 
               {/* Requests Chart */}
-              <Card title="Requests per Minute">
-                <div style={{ height: '200px', position: 'relative' }}>
-                    <Line
+              <Card title="Requests">
+                <div style={{ height: '240px', position: 'relative' }}>
+                  <Line
                     data={{
                       labels: metricsHistory.timestamps,
                       datasets: [{
-                        label: 'Requests',
+                        label: 'Requests/min',
                         data: metricsHistory.requests,
                         borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.15)',
                         fill: true,
-                        tension: 0.4,
+                        tension: 0.5,
+                        borderWidth: 2,
                         pointRadius: 0,
-                        pointHoverRadius: 4
+                        pointHoverRadius: 5,
+                        pointHoverBorderWidth: 2
                       }]
                     }}
-                    options={chartOptions}
+                    options={createChartOptions({
+                      beginAtZero: true
+                    })}
                   />
                 </div>
               </Card>
 
               {/* Response Time Chart */}
-              <Card title="Average Response Time (ms)">
-                <div style={{ height: '200px', position: 'relative' }}>
-                    <Line
+              <Card title="Response Time">
+                <div style={{ height: '240px', position: 'relative' }}>
+                  <Line
                     data={{
                       labels: metricsHistory.timestamps,
                       datasets: [{
-                        label: 'Response Time',
+                        label: 'Avg Response',
                         data: metricsHistory.responseTime,
                         borderColor: 'rgb(236, 72, 153)',
-                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        backgroundColor: 'rgba(236, 72, 153, 0.15)',
                         fill: true,
-                        tension: 0.4,
+                        tension: 0.5,
+                        borderWidth: 2,
                         pointRadius: 0,
-                        pointHoverRadius: 4
+                        pointHoverRadius: 5,
+                        pointHoverBorderWidth: 2
                       }]
                     }}
-                    options={chartOptions}
+                    options={createChartOptions({
+                      beginAtZero: true,
+                      unit: 'ms',
+                      callback: function(value) {
+                        return value.toFixed(1) + 'ms'
+                      }
+                    })}
                   />
                 </div>
               </Card>
             </div>
           )}
-
-          {/* Stats Cards */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card title="Last 1 minute">
-              <div className="grid grid-cols-2 gap-3">
-                <Tile title="Requests" value={metrics.last_1m.requests} />
-                <Tile title="Avg response" value={metrics.last_1m.avg_response_ms.toFixed(1)} unit="ms" />
-                <Tile title="p95 response" value={metrics.last_1m.p95_response_ms.toFixed(1)} unit="ms" />
-              </div>
-            </Card>
-            <Card title="Last 5 minutes">
-              <div className="grid grid-cols-2 gap-3">
-                <Tile title="Requests" value={metrics.last_5m.requests} />
-                <Tile title="Avg response" value={metrics.last_5m.avg_response_ms.toFixed(1)} unit="ms" />
-                <Tile title="p95 response" value={metrics.last_5m.p95_response_ms.toFixed(1)} unit="ms" />
-              </div>
-            </Card>
-          </div>
 
           <Card title="HTTP Status (15m)">
             <div className="flex flex-wrap gap-2">

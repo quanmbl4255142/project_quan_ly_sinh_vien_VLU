@@ -3,7 +3,7 @@ import { getStudents, createStudent, updateStudent, deleteStudent } from '../api
 import { useAuth } from '../hooks/useAuth'
 
 export default function Students(){
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, isTeacherOrAdmin } = useAuth()
   const [students, setStudents] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -11,6 +11,9 @@ export default function Students(){
   const [editingStudent, setEditingStudent] = useState(null)
   const [formData, setFormData] = useState({
     user_id: '',
+    username: '',
+    email: '',
+    password: '',
     student_code: '',
     full_name: '',
     date_of_birth: '',
@@ -45,6 +48,9 @@ export default function Students(){
       setEditingStudent(student)
       setFormData({
         user_id: student.user_id || '',
+        username: '',
+        email: '',
+        password: '',
         student_code: student.student_code || '',
         full_name: student.full_name || '',
         date_of_birth: student.date_of_birth || '',
@@ -60,6 +66,9 @@ export default function Students(){
       setEditingStudent(null)
       setFormData({
         user_id: '',
+        username: '',
+        email: '',
+        password: '',
         student_code: '',
         full_name: '',
         date_of_birth: '',
@@ -85,8 +94,11 @@ export default function Students(){
     setError('')
     try{
       if(editingStudent){
-        await updateStudent(editingStudent.id, formData)
+        // When editing, only send student fields (not user creation fields)
+        const { username, email, password, ...studentData } = formData
+        await updateStudent(editingStudent.id, studentData)
       }else{
+        // When creating, send all data (including username, email, password for user creation)
         await createStudent(formData)
       }
       closeForm()
@@ -114,7 +126,7 @@ export default function Students(){
           <span className="text-4xl">👨‍🎓</span>
           <h4 className="text-2xl font-bold text-gray-800">Danh sách sinh viên</h4>
         </div>
-        {isAdmin() && (
+        {isTeacherOrAdmin() && (
           <button onClick={()=>openForm()} className="rounded-lg bg-blue-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
             <span className="text-lg">➕</span> Thêm sinh viên
           </button>
@@ -158,14 +170,16 @@ export default function Students(){
                     </div>
                   </div>
                 </div>
-                {isAdmin() && (
+                {isTeacherOrAdmin() && (
                   <div className="flex items-center gap-2">
                     <button onClick={()=>openForm(s)} className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1">
                       <span>✏️</span> Sửa
                     </button>
-                    <button onClick={()=>handleDelete(s.id)} className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1">
-                      <span>🗑️</span> Xóa
-                    </button>
+                    {isAdmin() && (
+                      <button onClick={()=>handleDelete(s.id)} className="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 transition-colors flex items-center gap-1">
+                        <span>🗑️</span> Xóa
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -183,13 +197,34 @@ export default function Students(){
                 <h5 className="text-xl font-bold text-gray-800">{editingStudent ? 'Sửa sinh viên' : 'Thêm sinh viên'}</h5>
               </div>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {!editingStudent && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <h6 className="text-sm font-semibold text-blue-800 mb-3">📝 Thông tin tài khoản (để tạo tài khoản mới)</h6>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Tên đăng nhập <span className="text-red-500">*</span></label>
+                        <input type="text" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.username} onChange={e=>setFormData({...formData, username: e.target.value})} required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Email <span className="text-red-500">*</span></label>
+                        <input type="email" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.email} onChange={e=>setFormData({...formData, email: e.target.value})} required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Mật khẩu <span className="text-red-500">*</span></label>
+                        <input type="password" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.password} onChange={e=>setFormData({...formData, password: e.target.value})} required minLength={6} />
+                        <p className="text-xs text-gray-500 mt-1">Tối thiểu 6 ký tự</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {editingStudent && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-gray-600">💡 Khi sửa, chỉ có thể thay đổi thông tin sinh viên, không thể thay đổi thông tin tài khoản.</p>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">User ID</label>
-                    <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.user_id} onChange={e=>setFormData({...formData, user_id: e.target.value})} />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Mã sinh viên</label>
+                    <label className="block text-sm font-medium mb-1">Mã sinh viên <span className="text-red-500">*</span></label>
                     <input className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.student_code} onChange={e=>setFormData({...formData, student_code: e.target.value})} required />
                   </div>
                   <div>
