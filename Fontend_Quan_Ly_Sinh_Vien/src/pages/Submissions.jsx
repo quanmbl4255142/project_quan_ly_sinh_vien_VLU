@@ -302,10 +302,9 @@ export default function Submissions(){
                     <label className="block text-sm font-medium mb-1">Danh mục</label>
                     <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.submission_category} onChange={e=>setFormData({...formData, submission_category: e.target.value})}>
                       <option value="proposal">Proposal</option>
-                      <option value="progress_report">Progress Report</option>
-                      <option value="final_report">Final Report</option>
+                      <option value="progress">Progress Report</option>
+                      <option value="final">Final Report</option>
                       <option value="presentation">Presentation</option>
-                      <option value="code">Code</option>
                       <option value="other">Other</option>
                     </select>
                   </div>

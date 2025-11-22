@@ -43,10 +43,10 @@ class Config:
     print(f"   MYSQL_DATABASE: {os.environ.get('MYSQL_DATABASE', 'NOT SET')}")
     
     if DATABASE_URL:
-        # Hide password in log
+        # biến safe_url để lưu lại url của database nhưng không hiển thị password
         safe_url = DATABASE_URL
         if '@' in DATABASE_URL:
-            parts = DATABASE_URL.split('@')
+            parts = DATABASE_URL.split('@')#split the url by @
             if '://' in parts[0]:
                 creds = parts[0].split('://')[1]
                 if ':' in creds:

@@ -237,6 +237,24 @@ def create_submission():
             if file and file.filename:
                 file_info = save_uploaded_file(file, subfolder='submissions')
         
+        # Validate and normalize submission_category
+        valid_categories = ['proposal', 'progress', 'final', 'presentation', 'other']
+        submission_category = data.get('submission_category', 'other')
+        
+        # Map old values to new values for backward compatibility
+        category_mapping = {
+            'progress_report': 'progress',
+            'final_report': 'final',
+            'code': 'other'  # Map 'code' to 'other' since it's not in enum
+        }
+        
+        if submission_category in category_mapping:
+            submission_category = category_mapping[submission_category]
+        
+        # Validate category
+        if submission_category not in valid_categories:
+            submission_category = 'other'
+        
         # Create submission
         submission = ProjectSubmission(
             project_id=data['project_id'],
@@ -248,7 +266,7 @@ def create_submission():
             file_path=file_info['file_path'] if file_info else data.get('file_path'),
             file_type=file_info['file_type'] if file_info else data.get('file_type'),
             file_size=file_info['file_size'] if file_info else data.get('file_size'),
-            submission_category=data.get('submission_category', 'other'),
+            submission_category=submission_category,
             status='draft'
         )
         
@@ -322,7 +340,25 @@ def update_submission(submission_id):
         if 'file_size' in data and 'file' not in request.files:
             submission.file_size = data['file_size']
         if 'submission_category' in data:
-            submission.submission_category = data['submission_category']
+            # Validate and normalize submission_category
+            valid_categories = ['proposal', 'progress', 'final', 'presentation', 'other']
+            category = data['submission_category']
+            
+            # Map old values to new values for backward compatibility
+            category_mapping = {
+                'progress_report': 'progress',
+                'final_report': 'final',
+                'code': 'other'
+            }
+            
+            if category in category_mapping:
+                category = category_mapping[category]
+            
+            # Validate category
+            if category not in valid_categories:
+                category = 'other'
+            
+            submission.submission_category = category
         if 'status' in data:
             submission.status = data['status']
             if data['status'] == 'submitted':

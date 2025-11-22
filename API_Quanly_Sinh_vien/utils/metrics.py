@@ -1,5 +1,9 @@
 import time
+# threading là một module của Python để tạo thread, thread là một luồng nhỏ trong chương trình, nó có thể chạy đồng thời với main thread
 import threading
+# collections là một module của Python để tạo các collection data type như deque, defaultdict, ...
+# nhằm giúp tăng tốc độ xử lý và tối ưu hóa code
+# deque là một collection data type như list nhưng có thể thêm và xóa phần tử ở cả 2 đầu còn defaultdict là một collection data type như dict nhưng có thể thêm và xóa phần tử ở cả 2 đầu
 from collections import deque, defaultdict
 
 
