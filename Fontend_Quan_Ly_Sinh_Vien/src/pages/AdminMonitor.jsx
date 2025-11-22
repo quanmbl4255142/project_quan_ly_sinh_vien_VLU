@@ -34,6 +34,10 @@ export default function AdminMonitor(){
     disk: [],
     requests: [],
     responseTime: [],
+    status200: [],
+    status300: [],
+    status400: [],
+    status500: [],
     timestamps: []
   })
   const maxDataPoints = 60 // Lưu 60 điểm dữ liệu (5 phút nếu fetch mỗi 5 giây)
@@ -53,11 +57,36 @@ export default function AdminMonitor(){
           const now = new Date()
           const timeLabel = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
           
+          // Extract status codes from by_status_15m
+          const statusCounts = data.totals?.by_status_15m || {}
+          const getStatusCount = (code) => {
+            // Count all status codes in the range
+            let count = 0
+            for (const [status, value] of Object.entries(statusCounts)) {
+              const statusNum = parseInt(status)
+              if (code === 200 && statusNum >= 200 && statusNum < 300) count += value
+              else if (code === 300 && statusNum >= 300 && statusNum < 400) count += value
+              else if (code === 400 && statusNum >= 400 && statusNum < 500) count += value
+              else if (code === 500 && statusNum >= 500) count += value
+            }
+            return count
+          }
+          
+          // Get total counts for each status code range (rolling 15m window)
+          const status200Count = getStatusCount(200)
+          const status300Count = getStatusCount(300)
+          const status400Count = getStatusCount(400)
+          const status500Count = getStatusCount(500)
+          
           setMetricsHistory(prev => {
             const newHistory = {
               ...prev,
               requests: [...prev.requests, data.last_1m.requests || 0],
               responseTime: [...prev.responseTime, data.last_1m.avg_response_ms || 0],
+              status200: [...prev.status200, status200Count],
+              status300: [...prev.status300, status300Count],
+              status400: [...prev.status400, status400Count],
+              status500: [...prev.status500, status500Count],
               timestamps: [...prev.timestamps, timeLabel]
             }
             
@@ -65,6 +94,10 @@ export default function AdminMonitor(){
             if (newHistory.timestamps.length > maxDataPoints) {
               newHistory.requests.shift()
               newHistory.responseTime.shift()
+              newHistory.status200.shift()
+              newHistory.status300.shift()
+              newHistory.status400.shift()
+              newHistory.status500.shift()
               newHistory.timestamps.shift()
             }
             
@@ -93,6 +126,13 @@ export default function AdminMonitor(){
                 newHistory.cpu.shift()
                 newHistory.memory.shift()
                 newHistory.disk.shift()
+                // Also limit status codes if they exist
+                if (newHistory.status200.length > maxDataPoints) {
+                  newHistory.status200.shift()
+                  newHistory.status300.shift()
+                  newHistory.status400.shift()
+                  newHistory.status500.shift()
+                }
               }
               
               return newHistory
@@ -124,7 +164,7 @@ export default function AdminMonitor(){
     <div className="bg-[#1f2937] text-gray-100 rounded-xl shadow border border-white/5 p-5 overflow-hidden">
       <div className="font-semibold mb-3 opacity-90">{title}</div>
       <div className="overflow-hidden">
-        {children}
+      {children}
       </div>
     </div>
   )
@@ -236,7 +276,7 @@ export default function AdminMonitor(){
       <div className="flex items-end justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">📊 Tổng quan hệ thống</h2>
-          <p className="text-gray-400 text-sm">Tự cập nhật mỗi 5 giây • giao diện kiểu Railway</p>
+          <p className="text-gray-400 text-sm">Tự cập nhật mỗi 5 giây • giao diện kiểu grafana nhưng dữ liệu sync bên railway</p>
         </div>
         {metrics && (
           <div className="text-gray-400 text-sm">Cập nhật lúc {new Date(metrics.generated_at*1000).toLocaleTimeString()}</div>
@@ -285,7 +325,70 @@ export default function AdminMonitor(){
 
           {/* Charts - Railway Style */}
           {metricsHistory.timestamps.length > 0 && (
-            <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
+              {/* HTTP Status Codes Chart */}
+              <Card title="HTTP Status Codes (15m)">
+                <div style={{ height: '240px', position: 'relative' }}>
+                  <Line
+                    data={{
+                      labels: metricsHistory.timestamps,
+                      datasets: [
+                        {
+                          label: '2xx Success',
+                          data: metricsHistory.status200,
+                          borderColor: 'rgb(34, 197, 94)',
+                          backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                          fill: true,
+                          tension: 0.5,
+                          borderWidth: 2,
+                          pointRadius: 0,
+                          pointHoverRadius: 5,
+                          pointHoverBorderWidth: 2
+                        },
+                        {
+                          label: '3xx Redirect',
+                          data: metricsHistory.status300,
+                          borderColor: 'rgb(59, 130, 246)',
+                          backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                          fill: true,
+                          tension: 0.5,
+                          borderWidth: 2,
+                          pointRadius: 0,
+                          pointHoverRadius: 5,
+                          pointHoverBorderWidth: 2
+                        },
+                        {
+                          label: '4xx Client Error',
+                          data: metricsHistory.status400,
+                          borderColor: 'rgb(251, 191, 36)',
+                          backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                          fill: true,
+                          tension: 0.5,
+                          borderWidth: 2,
+                          pointRadius: 0,
+                          pointHoverRadius: 5,
+                          pointHoverBorderWidth: 2
+                        },
+                        {
+                          label: '5xx Server Error',
+                          data: metricsHistory.status500,
+                          borderColor: 'rgb(239, 68, 68)',
+                          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                          fill: true,
+                          tension: 0.5,
+                          borderWidth: 2,
+                          pointRadius: 0,
+                          pointHoverRadius: 5,
+                          pointHoverBorderWidth: 2
+                        }
+                      ]
+                    }}
+                    options={createChartOptions({
+                      beginAtZero: true
+                    })}
+                  />
+                </div>
+              </Card>
               {/* System Resources Chart */}
               {systemMetrics && metricsHistory.cpu.length > 0 && (
                 <Card title="System Resources">
@@ -368,8 +471,8 @@ export default function AdminMonitor(){
                       beginAtZero: true
                     })}
                   />
-                </div>
-              </Card>
+              </div>
+            </Card>
 
               {/* Response Time Chart */}
               <Card title="Response Time">
@@ -398,19 +501,30 @@ export default function AdminMonitor(){
                       }
                     })}
                   />
-                </div>
-              </Card>
-            </div>
+              </div>
+            </Card>
+          </div>
           )}
 
-          <Card title="HTTP Status (15m)">
+          <Card title="HTTP Status Details (15m)">
             <div className="flex flex-wrap gap-2">
-              {Object.entries(metrics.totals.by_status_15m).map(([code, count]) => (
-                <div key={code} className="px-3 py-1.5 rounded-lg bg-white/10 text-sm">
+              {Object.entries(metrics.totals.by_status_15m)
+                .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                .map(([code, count]) => {
+                  const codeNum = parseInt(code)
+                  let colorClass = 'bg-white/10'
+                  if (codeNum >= 200 && codeNum < 300) colorClass = 'bg-green-500/20 border border-green-500/30'
+                  else if (codeNum >= 300 && codeNum < 400) colorClass = 'bg-blue-500/20 border border-blue-500/30'
+                  else if (codeNum >= 400 && codeNum < 500) colorClass = 'bg-yellow-500/20 border border-yellow-500/30'
+                  else if (codeNum >= 500) colorClass = 'bg-red-500/20 border border-red-500/30'
+                  
+                  return (
+                    <div key={code} className={`px-3 py-1.5 rounded-lg ${colorClass} text-sm`}>
                   <span className="font-semibold">{code}</span>
                   <span className="opacity-80"> · {count}</span>
                 </div>
-              ))}
+                  )
+                })}
             </div>
           </Card>
         </>
