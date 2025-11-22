@@ -190,16 +190,16 @@ export default function AdminMonitor(){
         {statusBadge && (
           <div className="absolute top-2 right-2 text-xl">{statusBadge}</div>
         )}
-        <div className="text-sm opacity-80 mb-2">{title}</div>
-        <div className="text-3xl font-extrabold tracking-tight">{value}{unit ? <span className="text-base ml-1 opacity-80">{unit}</span> : null}</div>
+      <div className="text-sm opacity-80 mb-2">{title}</div>
+      <div className="text-3xl font-extrabold tracking-tight">{value}{unit ? <span className="text-base ml-1 opacity-80">{unit}</span> : null}</div>
         {status === 'danger' && (
           <div className="text-xs mt-2 opacity-90 font-semibold">⚠️ Nguy hiểm</div>
         )}
         {status === 'warning' && (
           <div className="text-xs mt-2 opacity-90">⚠️ Cảnh báo</div>
         )}
-      </div>
-    )
+    </div>
+  )
   }
 
   const Card = ({ title, children }) => (
@@ -644,8 +644,8 @@ export default function AdminMonitor(){
                       <span>&gt; 1000ms: Nguy hiểm</span>
                     </div>
                   </div>
-                </div>
-              </Card>
+              </div>
+            </Card>
           </div>
           )}
 

@@ -3,14 +3,15 @@ from flask import jsonify
 from flask_jwt_extended import get_jwt_identity
 from models import User
 
+# phương thức role_required là một decorator để kiểm tra xem user có role là admin hoặc teacher hay không còn student thì không được phép truy cập
 def role_required(*allowed_roles):
     """
     Decorator to check if user has required role
     Usage: @role_required('admin', 'teacher')
     """
     def decorator(fn):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
+        @wraps(fn)  # wraps là một hàm trong functools module để lưu lại thông tin của hàm gốc
+        def wrapper(*args, **kwargs): #phương thức wrapper là một hàm để lưu lại thông tin của hàm gốc nghĩa là khi gọi hàm wrapper thì sẽ gọi hàm gốc, hàm gốc ở đây là hàm fn(fn là hàm được truyền vào decorator)
             try:
                 user_id = get_jwt_identity()
                 user = User.query.get(int(user_id))
@@ -80,7 +81,8 @@ def teacher_or_admin_required(fn):
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     return wrapper
-
+# own là own_resource_or_admin là một decorator(decorator là một hàm để lưu lại thông tin của hàm gốc vd: @own_resource_or_admin(lambda student_id: Student.query.get(student_id).user_id))
+# để kiểm tra xem user có quyền truy cập vào resource của user khác hay không
 def own_resource_or_admin(resource_user_id_getter):
     """
     Decorator to check if user owns the resource or is admin

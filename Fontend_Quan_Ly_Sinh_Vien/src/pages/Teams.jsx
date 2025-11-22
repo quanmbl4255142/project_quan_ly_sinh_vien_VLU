@@ -14,6 +14,7 @@ export default function Teams(){
   const [editingTeam, setEditingTeam] = useState(null)
   const [selectedTeam, setSelectedTeam] = useState(null)
   const [newMemberId, setNewMemberId] = useState('')
+  const [selectedMemberId, setSelectedMemberId] = useState('')
   const [formData, setFormData] = useState({
     team_name: '',
     project_id: '',
@@ -79,7 +80,30 @@ export default function Teams(){
         status: 'forming'
       })
     }
+    setSelectedMemberId('')
     setShowForm(true)
+  }
+
+  function addMemberToForm(){
+    if(!selectedMemberId || formData.member_ids.includes(parseInt(selectedMemberId))){
+      return
+    }
+    if(parseInt(selectedMemberId) === parseInt(formData.leader_id)){
+      setError('Trưởng nhóm đã tự động là thành viên')
+      return
+    }
+    setFormData({
+      ...formData,
+      member_ids: [...formData.member_ids, parseInt(selectedMemberId)]
+    })
+    setSelectedMemberId('')
+  }
+
+  function removeMemberFromForm(memberId){
+    setFormData({
+      ...formData,
+      member_ids: formData.member_ids.filter(id => id !== memberId)
+    })
   }
 
   function closeForm(){
@@ -218,6 +242,63 @@ export default function Teams(){
                     {students.map(s => <option key={s.id} value={s.id}>{s.full_name || s.student_code}</option>)}
                   </select>
                 </div>
+                
+                {/* Phần thêm thành viên */}
+                {!editingTeam && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Thêm thành viên</label>
+                    <div className="flex gap-2 mb-2">
+                      <select 
+                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        value={selectedMemberId} 
+                        onChange={e=>setSelectedMemberId(e.target.value)}
+                      >
+                        <option value="">-- Chọn sinh viên --</option>
+                        {students
+                          .filter(s => s.id !== parseInt(formData.leader_id) && !formData.member_ids.includes(s.id))
+                          .map(s => (
+                            <option key={s.id} value={s.id}>
+                              {s.full_name || s.student_code}
+                            </option>
+                          ))}
+                      </select>
+                      <button 
+                        type="button"
+                        onClick={addMemberToForm}
+                        disabled={!selectedMemberId}
+                        className="rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-medium hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      >
+                        Thêm
+                      </button>
+                    </div>
+                    {formData.member_ids.length > 0 && (
+                      <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="text-xs font-medium text-gray-700 mb-2">Thành viên đã chọn ({formData.member_ids.length}):</div>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.member_ids.map(memberId => {
+                            const student = students.find(s => s.id === memberId)
+                            return (
+                              <div 
+                                key={memberId} 
+                                className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-gray-300 text-sm"
+                              >
+                                <span>{student?.full_name || student?.student_code || memberId}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeMemberFromForm(memberId)}
+                                  className="text-red-600 hover:text-red-800 ml-1"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium mb-1">Trạng thái</label>
                   <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})}>
