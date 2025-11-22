@@ -1,7 +1,11 @@
+#  mục đích của file này là để khởi tạo các bảng trong database, được tạo khi chạy app
+# nếu như đã tồn tại bảng trong database thì sẽ không tạo lại
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
 db = SQLAlchemy()
+
+# phương thức Migrate() nói dễ hiểu thì nó t
 migrate = Migrate()
 
 # Import all models

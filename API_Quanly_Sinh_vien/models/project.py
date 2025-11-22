@@ -66,6 +66,7 @@ class ProjectDocument(db.Model):
     uploaded_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # to_dict được sửa dụng khi 
     def to_dict(self):
         return {
             'id': self.id,

@@ -1,6 +1,7 @@
 from datetime import datetime
 from . import db
 
+# ProjectSubmission là bảng đăng ký dự án của sinh viên
 class ProjectSubmission(db.Model):
     __tablename__ = 'project_submissions'
     
@@ -45,6 +46,7 @@ class ProjectSubmission(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
+# ProjectEvaluation là bảng đánh giá dự án của sinh viên
 class ProjectEvaluation(db.Model):
     __tablename__ = 'project_evaluations'
     
@@ -55,7 +57,7 @@ class ProjectEvaluation(db.Model):
     evaluator_teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=True)
     evaluator_student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=True)
     
-    # Evaluation criteria scores (1-10 scale)
+    # Evaluation criteria scores (1-10 scale) -> nghĩa là đánh giá từ 1 đến 10
     technical_quality = db.Column(db.Integer)
     creativity = db.Column(db.Integer)
     presentation = db.Column(db.Integer)
@@ -63,10 +65,11 @@ class ProjectEvaluation(db.Model):
     timeliness = db.Column(db.Integer)
     documentation = db.Column(db.Integer)
     
-    # Overall scores
+    # Overall scores -> tổng điểm
     total_score = db.Column(db.Float)
     max_score = db.Column(db.Float, default=60.0)
     percentage = db.Column(db.Float)
+    # percentage = db.Column(db.Float) -> tỷ lệ phần trăm
     
     comments = db.Column(db.Text)
     recommendation = db.Column(db.Enum('excellent', 'good', 'satisfactory', 'needs_improvement', 'poor'))
