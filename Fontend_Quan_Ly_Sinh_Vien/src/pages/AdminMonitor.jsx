@@ -595,43 +595,54 @@ export default function AdminMonitor(){
 
               {/* Response Time Chart */}
               <Card title="Response Time (ms)">
-                <div style={{ height: '240px', position: 'relative' }}>
-                  <Line
-                    data={{
-                      labels: metricsHistory.timestamps,
-                      datasets: [{
-                        label: 'Avg Response',
-                        data: metricsHistory.responseTime,
-                        borderColor: 'rgb(236, 72, 153)',
-                        backgroundColor: 'rgba(236, 72, 153, 0.15)',
-                        fill: true,
-                        tension: 0.5,
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        pointHoverRadius: 5,
-                        pointHoverBorderWidth: 2,
-                        segment: {
-                          borderColor: (ctx) => {
-                            const value = ctx.p1.parsed.y
-                            if (value > 1000) return 'rgb(239, 68, 68)' // Red for danger
-                            if (value > 500) return 'rgb(251, 191, 36)' // Yellow for warning
-                            return 'rgb(236, 72, 153)' // Pink for normal
+                <div className="space-y-2">
+                  <div style={{ height: '240px', position: 'relative' }}>
+                    <Line
+                      data={{
+                        labels: metricsHistory.timestamps,
+                        datasets: [{
+                          label: 'Avg Response',
+                          data: metricsHistory.responseTime,
+                          borderColor: 'rgb(236, 72, 153)',
+                          backgroundColor: 'rgba(236, 72, 153, 0.15)',
+                          fill: true,
+                          tension: 0.5,
+                          borderWidth: 2,
+                          pointRadius: 0,
+                          pointHoverRadius: 5,
+                          pointHoverBorderWidth: 2,
+                          segment: {
+                            borderColor: (ctx) => {
+                              const value = ctx.p1.parsed.y
+                              if (value > 1000) return 'rgb(239, 68, 68)' // Red for danger
+                              if (value > 500) return 'rgb(251, 191, 36)' // Yellow for warning
+                              return 'rgb(236, 72, 153)' // Pink for normal
+                            }
                           }
+                        }]
+                      }}
+                      options={createChartOptions({
+                        beginAtZero: true,
+                        unit: 'ms',
+                        callback: function(value) {
+                          return value.toFixed(1) + 'ms'
                         }
-                      }]
-                    }}
-                    options={createChartOptions({
-                      beginAtZero: true,
-                      unit: 'ms',
-                      callback: function(value) {
-                        return value.toFixed(1) + 'ms'
-                      }
-                    })}
-                  />
-                  <div className="absolute top-2 right-2 text-xs text-gray-400">
-                    <div>🟢 &lt; 500ms: Bình thường</div>
-                    <div>🟡 500-1000ms: Cảnh báo</div>
-                    <div>🔴 &gt; 1000ms: Nguy hiểm</div>
+                      })}
+                    />
+                  </div>
+                  <div className="flex items-center justify-center gap-4 text-xs text-gray-400 pt-2 border-t border-white/10">
+                    <div className="flex items-center gap-1">
+                      <span>🟢</span>
+                      <span>&lt; 500ms: Bình thường</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🟡</span>
+                      <span>500-1000ms: Cảnh báo</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🔴</span>
+                      <span>&gt; 1000ms: Nguy hiểm</span>
+                    </div>
                   </div>
                 </div>
               </Card>
