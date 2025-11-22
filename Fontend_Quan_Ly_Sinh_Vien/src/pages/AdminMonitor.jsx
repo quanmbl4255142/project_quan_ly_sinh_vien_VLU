@@ -153,12 +153,54 @@ export default function AdminMonitor(){
     return () => { isMounted = false; clearInterval(timer) }
   }, [maxDataPoints])
 
-  const Tile = ({ title, value, unit, color='from-gray-700 to-gray-800' }) => (
-    <div className={`rounded-xl p-5 bg-gradient-to-br ${color} text-white shadow-inner`}>
-      <div className="text-sm opacity-80 mb-2">{title}</div>
-      <div className="text-3xl font-extrabold tracking-tight">{value}{unit ? <span className="text-base ml-1 opacity-80">{unit}</span> : null}</div>
-    </div>
-  )
+  // Helper function to get status level (normal, warning, danger)
+  const getStatusLevel = (value, thresholds) => {
+    if (value >= thresholds.danger) return 'danger'
+    if (value >= thresholds.warning) return 'warning'
+    return 'normal'
+  }
+
+  // Helper function to get color based on status
+  const getStatusColor = (status, type) => {
+    if (status === 'danger') {
+      if (type === 'cpu') return 'from-red-600 to-red-700'
+      if (type === 'memory') return 'from-red-600 to-red-700'
+      if (type === 'disk') return 'from-red-600 to-red-700'
+      return 'from-red-600 to-red-700'
+    }
+    if (status === 'warning') {
+      if (type === 'cpu') return 'from-orange-600 to-orange-700'
+      if (type === 'memory') return 'from-yellow-600 to-yellow-700'
+      if (type === 'disk') return 'from-orange-600 to-orange-700'
+      return 'from-yellow-600 to-yellow-700'
+    }
+    // normal
+    if (type === 'cpu') return 'from-orange-600 to-orange-700'
+    if (type === 'memory') return 'from-green-600 to-green-700'
+    if (type === 'disk') return 'from-purple-600 to-purple-700'
+    return 'from-blue-700 to-blue-800'
+  }
+
+  const Tile = ({ title, value, unit, color, status, statusType }) => {
+    const displayColor = status ? getStatusColor(status, statusType) : color
+    const statusBadge = status === 'danger' ? '🔴' : status === 'warning' ? '🟡' : null
+    
+    return (
+      <div className={`rounded-xl p-5 bg-gradient-to-br ${displayColor} text-white shadow-inner relative`}>
+        {statusBadge && (
+          <div className="absolute top-2 right-2 text-xl">{statusBadge}</div>
+        )}
+        <div className="text-sm opacity-80 mb-2">{title}</div>
+        <div className="text-3xl font-extrabold tracking-tight">{value}{unit ? <span className="text-base ml-1 opacity-80">{unit}</span> : null}</div>
+        {status === 'danger' && (
+          <div className="text-xs mt-2 opacity-90 font-semibold">⚠️ Nguy hiểm</div>
+        )}
+        {status === 'warning' && (
+          <div className="text-xs mt-2 opacity-90">⚠️ Cảnh báo</div>
+        )}
+      </div>
+    )
+  }
 
   const Card = ({ title, children }) => (
     <div className="bg-[#1f2937] text-gray-100 rounded-xl shadow border border-white/5 p-5 overflow-hidden">
@@ -287,6 +329,70 @@ export default function AdminMonitor(){
         <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">{error}</div>
       )}
 
+      {/* Alert Banner for Critical Thresholds */}
+      {metrics && systemMetrics && (() => {
+        const alerts = []
+        const cpuPercent = systemMetrics.cpu?.percent || 0
+        const memoryPercent = systemMetrics.memory?.percent || 0
+        const diskPercent = systemMetrics.disk?.percent || 0
+        const responseTime = metrics.last_1m?.avg_response_ms || 0
+        const totalRequests = metrics.totals?.requests_15m || 0
+        const error5xx = metricsHistory.status500[metricsHistory.status500.length - 1] || 0
+        const error5xxPercent = totalRequests > 0 ? (error5xx / totalRequests) * 100 : 0
+
+        if (cpuPercent >= 90) {
+          alerts.push({ type: 'danger', message: `CPU sử dụng ${cpuPercent.toFixed(1)}% - Nguy hiểm! Server có thể bị chậm hoặc crash.` })
+        } else if (cpuPercent >= 70) {
+          alerts.push({ type: 'warning', message: `CPU sử dụng ${cpuPercent.toFixed(1)}% - Cảnh báo!` })
+        }
+
+        if (memoryPercent >= 90) {
+          alerts.push({ type: 'danger', message: `Memory sử dụng ${memoryPercent.toFixed(1)}% - Nguy hiểm! Có thể gây lỗi out-of-memory.` })
+        } else if (memoryPercent >= 70) {
+          alerts.push({ type: 'warning', message: `Memory sử dụng ${memoryPercent.toFixed(1)}% - Cảnh báo!` })
+        }
+
+        if (diskPercent >= 90) {
+          alerts.push({ type: 'danger', message: `Disk sử dụng ${diskPercent.toFixed(1)}% - Nguy hiểm! Không thể lưu file mới, DB có thể lỗi.` })
+        } else if (diskPercent >= 80) {
+          alerts.push({ type: 'warning', message: `Disk sử dụng ${diskPercent.toFixed(1)}% - Cảnh báo!` })
+        }
+
+        if (responseTime > 1000) {
+          alerts.push({ type: 'danger', message: `Response time ${responseTime.toFixed(0)}ms - Nguy hiểm! User trải nghiệm xấu.` })
+        } else if (responseTime > 500) {
+          alerts.push({ type: 'warning', message: `Response time ${responseTime.toFixed(0)}ms - Cảnh báo!` })
+        }
+
+        if (error5xxPercent > 2) {
+          alerts.push({ type: 'danger', message: `5xx errors: ${error5xxPercent.toFixed(1)}% (${error5xx} requests) - Nguy hiểm! Server đang gặp lỗi.` })
+        } else if (error5xxPercent > 1) {
+          alerts.push({ type: 'warning', message: `5xx errors: ${error5xxPercent.toFixed(1)}% (${error5xx} requests) - Cảnh báo!` })
+        }
+
+        if (alerts.length === 0) return null
+
+        return (
+          <div className="space-y-2">
+            {alerts.map((alert, idx) => (
+              <div
+                key={idx}
+                className={`rounded-lg border px-4 py-3 text-sm ${
+                  alert.type === 'danger'
+                    ? 'bg-red-50 border-red-300 text-red-800'
+                    : 'bg-yellow-50 border-yellow-300 text-yellow-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{alert.type === 'danger' ? '🔴' : '🟡'}</span>
+                  <span className="font-semibold">{alert.message}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
+
       {!metrics ? (
         <div className="text-gray-400">Đang tải...</div>
       ) : (
@@ -300,28 +406,41 @@ export default function AdminMonitor(){
           </div>
 
           {/* System Metrics Tiles */}
-          {systemMetrics && (
-            <div className="grid md:grid-cols-3 gap-4">
-              <Tile 
-                title="CPU Usage" 
-                value={systemMetrics.cpu?.percent?.toFixed(1) || '0'} 
-                unit="%" 
-                color="from-orange-600 to-orange-700" 
-              />
-              <Tile 
-                title="Memory Usage" 
-                value={systemMetrics.memory?.percent?.toFixed(1) || '0'} 
-                unit="%" 
-                color="from-green-600 to-green-700" 
-              />
-              <Tile 
-                title="Disk Usage" 
-                value={systemMetrics.disk?.percent?.toFixed(1) || '0'} 
-                unit="%" 
-                color="from-purple-600 to-purple-700" 
-              />
-            </div>
-          )}
+          {systemMetrics && (() => {
+            const cpuPercent = systemMetrics.cpu?.percent || 0
+            const memoryPercent = systemMetrics.memory?.percent || 0
+            const diskPercent = systemMetrics.disk?.percent || 0
+            
+            const cpuStatus = getStatusLevel(cpuPercent, { warning: 70, danger: 90 })
+            const memoryStatus = getStatusLevel(memoryPercent, { warning: 70, danger: 90 })
+            const diskStatus = getStatusLevel(diskPercent, { warning: 80, danger: 90 })
+            
+            return (
+              <div className="grid md:grid-cols-3 gap-4">
+                <Tile 
+                  title="CPU Usage" 
+                  value={cpuPercent.toFixed(1)} 
+                  unit="%" 
+                  status={cpuStatus}
+                  statusType="cpu"
+                />
+                <Tile 
+                  title="Memory Usage" 
+                  value={memoryPercent.toFixed(1)} 
+                  unit="%" 
+                  status={memoryStatus}
+                  statusType="memory"
+                />
+                <Tile 
+                  title="Disk Usage" 
+                  value={diskPercent.toFixed(1)} 
+                  unit="%" 
+                  status={diskStatus}
+                  statusType="disk"
+                />
+              </div>
+            )
+          })()}
 
           {/* Charts - Railway Style */}
           {metricsHistory.timestamps.length > 0 && (
@@ -475,7 +594,7 @@ export default function AdminMonitor(){
             </Card>
 
               {/* Response Time Chart */}
-              <Card title="Response Time">
+              <Card title="Response Time (ms)">
                 <div style={{ height: '240px', position: 'relative' }}>
                   <Line
                     data={{
@@ -490,7 +609,15 @@ export default function AdminMonitor(){
                         borderWidth: 2,
                         pointRadius: 0,
                         pointHoverRadius: 5,
-                        pointHoverBorderWidth: 2
+                        pointHoverBorderWidth: 2,
+                        segment: {
+                          borderColor: (ctx) => {
+                            const value = ctx.p1.parsed.y
+                            if (value > 1000) return 'rgb(239, 68, 68)' // Red for danger
+                            if (value > 500) return 'rgb(251, 191, 36)' // Yellow for warning
+                            return 'rgb(236, 72, 153)' // Pink for normal
+                          }
+                        }
                       }]
                     }}
                     options={createChartOptions({
@@ -501,8 +628,13 @@ export default function AdminMonitor(){
                       }
                     })}
                   />
-              </div>
-            </Card>
+                  <div className="absolute top-2 right-2 text-xs text-gray-400">
+                    <div>🟢 &lt; 500ms: Bình thường</div>
+                    <div>🟡 500-1000ms: Cảnh báo</div>
+                    <div>🔴 &gt; 1000ms: Nguy hiểm</div>
+                  </div>
+                </div>
+              </Card>
           </div>
           )}
 
